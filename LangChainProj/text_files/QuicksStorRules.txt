@@ -1,0 +1,11 @@
+use taiga in all your work 
+you can send to the whatsapp group in case of urgency or you need to communicate with the staff
+you have a dedicated link for your reveue generation along the month. it is updated every week nearly.
+you have to follow all the rules strictly or otherewise the revenue per job will be affected 
+th job starts in the 'ready' state. whenever you are assigned the job you must move it to 'in progress' state as soon you start working on it. then to 'ready  for test ' as soon you finish it.
+compare your quality based jobs between you and th others and make comments in the job comment section whenever you see somehting diferrent and you know why or you feel it may be a result of somehting.
+any idea you have, do not apply, unless you discuss it with the technical director. Moataz is the technical director as of 2020
+for any failed step in your job, please download th esystem configuration files from the web UI. rename the downloaded file with the quality sheet tab name and step row number
+do not do the same quality job twice one after the other you must follow the quality job with another differrent job 
+make sure to complete all the jobs in the week and also make sure to make all the quality jobs in sequence. So do not ignore one of them after you do all the other, you must start with it. 
+by saturday you have to move the 'ready for test' jobs that you own to done, so you have to discuss the differrences with your colleage. or you must send in the whatsapp that this is not possible and why it is not possible.
