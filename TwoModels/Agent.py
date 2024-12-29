@@ -40,10 +40,10 @@ class Agent:
         self.initTools(self.tools)
         
         if asis == 1:
-            save_directory = model_name.replace('/','_')+'_saved_quality'
+            save_directory = '../'+model_name.replace('/','_')+'_saved_quality'
             torchfloat = torch.bfloat16
         else:
-            save_directory = model_name.replace('/','_')+'_saved_response'
+            save_directory = '../'+model_name.replace('/','_')+'_saved_response'
             torchfloat = torch.float16
         
         try:
