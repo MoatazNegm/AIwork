@@ -181,12 +181,7 @@ class Agent:
     def create_system_prompt(self,prompt, extras=[]):
             if 'nstruct'in self.model_name:
                 result = self.instruct_create_system_prompt(prompt)
-                jsons, _ = json_data_list, text_parts = self.extract_all_json(result)
-                if len(jsons) > 0:
-                    for json_data in jsons:
-                        print('tool_call',json)
-                        #tool_call = {"name": "list_files", "arguments": {"location": "Paris, France"}}
-                        #messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
+                
                 return result
             else:
                 return self.llm_create_system_prompt(prompt)
@@ -291,43 +286,50 @@ class Agent:
             "content": response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0],
             
         })
-        return  response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0]
+        cleaned_response = response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0]
+        jsons, _ = json_data_list, text_parts = self.extract_all_json(cleaned_response)
+        if len(jsons) > 0:
+            for json_data in jsons:
+                print('tool_call',json_data)
+                #tool_call = {"name": "list_files", "arguments": {"location": "Paris, France"}}
+                #messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
+        return cleaned_response
     
     def extract_all_json(self,text):
-    """
-    Extracts all valid JSON objects from a string.
+        """
+        Extracts all valid JSON objects from a string.
 
-    Args:
-        text: The string to search for JSON.
+        Args:
+            text: The string to search for JSON.
 
-    Returns:
-        A list of Python dictionaries (the parsed JSON objects) and the text parts before, between and after the jsons.
-        Returns an empty list if no valid JSON is found.
-    """
-    json_objects = []
-    text_parts = []
-    try:
-        matches =   list(re.finditer(r"\{(?:[^{}]|{[^{}]*})*\}", text)) # Use finditer for indices
-        if not matches:
-            return [], [text.strip()]  # No JSON found
+        Returns:
+            A list of Python dictionaries (the parsed JSON objects) and the text parts before, between and after the jsons.
+            Returns an empty list if no valid JSON is found.
+        """
+        json_objects = []
+        text_parts = []
+        try:
+            matches =   list(re.finditer(r"\{(?:[^{}]|{[^{}]*})*\}", text)) # Use finditer for indices
+            if not matches:
+                return [], [text.strip()]  # No JSON found
 
-        last_end = 0
-        for match in matches:
-            json_string = match.group(0)
-            try:
-                data = json.loads(json_string)
-                json_objects.append(data)
-                text_parts.append(text[last_end:match.start()].strip())
-                last_end = match.end()
-            except json.JSONDecodeError:
-                pass  # Ignore invalid JSON
-        text_parts.append(text[last_end:].strip()) #add the last part of the text
+            last_end = 0
+            for match in matches:
+                json_string = match.group(0)
+                try:
+                    data = json.loads(json_string)
+                    json_objects.append(data)
+                    text_parts.append(text[last_end:match.start()].strip())
+                    last_end = match.end()
+                except json.JSONDecodeError:
+                    pass  # Ignore invalid JSON
+            text_parts.append(text[last_end:].strip()) #add the last part of the text
 
-        return json_objects, text_parts
+            return json_objects, text_parts
 
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return [], [text.strip()]
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            return [], [text.strip()]
     
     def reset(self,message=''):
         if len(message) == 0:
@@ -482,14 +484,16 @@ def list_llm_tools(tools_dir="toolsfn", modules=None):
         for name, obj in inspect.getmembers(module):
             if is_tool_function(obj):
                 tools.append(obj)
-
+    toolnames = []
+    for tool in tools:
+        toolnames.append(tool.__name__)
     # Inspect modules within the specified directory
     if os.path.exists(tools_dir) and os.path.isdir(tools_dir):
         for filename in os.listdir(tools_dir):
             if filename.endswith(".py"):
                 module_name = filename[:-3]
                 module_path = os.path.join(tools_dir, filename)
-
+                
                 try:
                     spec = importlib.util.spec_from_file_location(module_name, module_path)
                     module = importlib.util.module_from_spec(spec)
