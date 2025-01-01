@@ -291,6 +291,9 @@ class Agent:
         if len(jsons) > 0:
             for json_data in jsons:
                 print('tool_call',json_data)
+                #json_result = globals().get(json_data['name'])(**json_data['parameters'])
+                json_result = self.tools[1](**json_data['parameters'])
+                print('tool_result',json_result)
                 #tool_call = {"name": "list_files", "arguments": {"location": "Paris, France"}}
                 #messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
         return cleaned_response
