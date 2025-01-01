@@ -30,14 +30,14 @@ class Agent:
         # Load Qwen model and tokenizer            
         max_length=8500  # Total tokens (input + output)
         max_new_tokens=500  # Limit output tokens
-        self.tools = tools
+        self.tools = dict()
         self.schema_tools = []
         self.pipelineTools = []
         self.instruct_history = 10
         self.instruct_history_counter = 0
     
 
-        self.initTools(self.tools)
+        self.initTools(tools)
         
         if asis == 1:
             save_directory = '../'+model_name.replace('/','_')+'_saved_quality'
@@ -167,14 +167,14 @@ class Agent:
     def initTools(self,tools=0):
         self.schema_tools = []
         self.pipelineTools = []
-        if  tools != 0:
-            self.tools = tools
+        for tool in tools:
+            self.tools[tool.__name__] = tool
         for tool in self.tools:
-            self.schema_tools.append(self.get_tool_schema(tool))
+            self.schema_tools.append(self.get_tool_schema(self.tools[tool]))
             self.pipelineTools.append(Tool(
-                                        name=tool.__name__,
-                                        func=tool,
-                                        description=inspect.getdoc(tool)
+                                        name=tool,
+                                        func=self.tools[tool],
+                                        description=inspect.getdoc(self.tools[tool])
                                     ))
 
               
@@ -260,7 +260,7 @@ class Agent:
 
         text = self.tokenizer.apply_chat_template(
             messages,
-            tools= self.tools,
+            tools= list(self.tools.values()),
             tokenize=False,
             add_generation_prompt=True,
             #return_tensors="pt"
@@ -292,7 +292,7 @@ class Agent:
             for json_data in jsons:
                 print('tool_call',json_data)
                 #json_result = globals().get(json_data['name'])(**json_data['parameters'])
-                json_result = self.tools[1](**json_data['parameters'])
+                json_result = self.tools[json_data['name']](**json_data['parameters'])
                 print('tool_result',json_result)
                 #tool_call = {"name": "list_files", "arguments": {"location": "Paris, France"}}
                 #messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
