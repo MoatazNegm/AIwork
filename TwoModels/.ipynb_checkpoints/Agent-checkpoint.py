@@ -34,7 +34,8 @@ class Agent:
         self.schema_tools = []
         self.pipelineTools = []
         self.instruct_history = 10
-        self.instruct_history_counter = 0
+        self.max_iterations = 10
+        self.iterations = 0
     
 
         self.initTools(tools)
@@ -187,14 +188,12 @@ class Agent:
                 return self.llm_create_system_prompt(prompt)
 
     def instruct_create_system_prompt(self,prompt, extras=[]):  ### for instruct models
-        
+        if self.iterations > 0:
+            return self.messages
         self.messages.append(dict({
             "role": "user", 
             "content": prompt
         }))
-        #for msg in self.messages[-self.instruct_history:]:  # Limit context to last 5 messages
-        #    prompt += f"{msg['role'].capitalize()}: {msg['content']}\n"
-        #prompt += "Assistant:"
         
         self.messages =  self.messages[-self.instruct_history:]
         if self.message not in str(self.messages[0]['content']):
@@ -255,21 +254,25 @@ class Agent:
             
         #})
         
-        
+        #print('---------------------------------------------------------------------------------')
+        #print('for messages:',messages)
         #return response.split('ssistant:')[-1].split("User")[0]
-
+        
         text = self.tokenizer.apply_chat_template(
             messages,
             tools= list(self.tools.values()),
             tokenize=False,
             add_generation_prompt=True,
-            #return_tensors="pt"
+            return_tensors="pt",
+            #return_dict = True
         )
-
-
-        # Generate response
        
+        #print('the text submitted:',text)
+        # Generate response
         inputs = self.tokenizer(text, return_tensors="pt", return_attention_mask=True).to(self.model.device)
+        #inputs = self.tokenizer.apply_chat_template(messages, tools=list(self.tools.values()), add_generation_prompt=True, return_dict=True, return_tensors="pt")
+        #inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
+        
         generated_ids = self.model.generate(
             input_ids=inputs["input_ids"],
             #inputs,
@@ -278,24 +281,50 @@ class Agent:
             temperature = 0.1,
             #pad_token_id=self.model.config.eos_token_id
         )
-
+    
+        #generated_ids = self.model.generate(**inputs,max_new_tokens=384 )
         # Decode response
         response = self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-        self.messages.append({
-            "role": "assistant", 
-            "content": response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0],
-            
-        })
+        #response = self.tokenizer.decode(generated_ids[0][len(inputs["input_ids"][0]):])
+        #print('*******************************************')
+        #print('response is:', response)
+        #print('*******************************************')
         cleaned_response = response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0]
         jsons, _ = json_data_list, text_parts = self.extract_all_json(cleaned_response)
-        if len(jsons) > 0:
+        if len(jsons) > 0 and self.iterations < self.max_iterations:
+            mod_tool_call = {}
+            mod_tool_calls = []
+            tool_calls = []
+            self.messages.append({
+                "role": "assistant", 
+                "content": response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0],
+            })
             for json_data in jsons:
-                print('tool_call',json_data)
+                #print('tool_call',json_data)
+                
                 #json_result = globals().get(json_data['name'])(**json_data['parameters'])
-                json_result = self.tools[json_data['name']](**json_data['parameters'])
-                print('tool_result',json_result)
+                try:
+                    mod_tool_call['name'] = json_data['name']
+                    mod_tool_call['arguments'] = json_data['parameters']
+                    json_result = self.tools[json_data['name']](**json_data['parameters'])
+                    tool_calls.append({"type": "function", "function": mod_tool_call})
+                    mod_tool_calls.append({"role": "ipython", "name": json_data['name'], "content": json_result})
+                except:
+                    print(json_data['name'],'not a valid tool')
+            
+            self.messages.append({"role": "assistant", "content": tool_calls})
+            for tool in mod_tool_calls:
+                self.messages.append(tool)
+            self.iterations += 1
+            #print('resubmit the prompt for iteration',self.iterations)
+            return self.generate_response(prompt)
+        else:
+            self.iterations = 0
+                
                 #tool_call = {"name": "list_files", "arguments": {"location": "Paris, France"}}
                 #messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
+        #print('all ended with the messages',self.messages)
+        #print('-------------------------------------------------------------------------------------------------')
         return cleaned_response
     
     def extract_all_json(self,text):

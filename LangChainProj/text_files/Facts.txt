@@ -4,4 +4,5 @@ Business staff needs system called 'AI use_case x'
 CxO staff needs a PoC called 'AI money generator' that can run in production.
 AI sellers expects any AI request a genAI solutions.
 Storage vendors expects any AI solution a Datalake opportuinty.
-
+Ody is my son
+I consider Ody as naughty
