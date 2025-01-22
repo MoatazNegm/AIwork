@@ -16,7 +16,6 @@
 # #!pip3 install bitsandbytes
 # #!pip3 install scipy
 
-from transformers import pipeline, Tool
 import torch, os
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, LlamaTokenizer, LlamaForCausalLM, MistralForCausalLM
 import random, json
@@ -32,7 +31,6 @@ class Agent:
         max_new_tokens=500  # Limit output tokens
         self.tools = dict()
         self.schema_tools = []
-        self.pipelineTools = []
         self.instruct_history = 10
         self.max_iterations = 10
         self.iterations = 0
@@ -52,22 +50,7 @@ class Agent:
             print('Trying to load the mode:',save_directory,'from local repo')
             self.model = AutoModelForCausalLM.from_pretrained(save_directory)
             self.tokenizer = AutoTokenizer.from_pretrained(save_directory)
-            #self.model_pipeline = pipeline(
-            #    "text-generation", 
-            #    model=save_directory,
-            #    model_kwargs={
-            #        #"quantization_config": bnb_config,
-            #        "torch_dtype": torchfloat,
-            #        "device_map": "cuda",
-            #       
-            #    },
-            #    max_length=max_length,
-            #    max_new_tokens=max_new_tokens,
-            #    truncation=True,
-            #    temperature = 0.1,
-            #    top_k=1,
-            #    tools= self.pipelineTools
-            #)
+            print("the requested mode:",model_name,"is loaded")
         except:
             print('The model:',model_name,'is not found locally, downloading it')
             if asis == 1:
@@ -97,43 +80,26 @@ class Agent:
                 )
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_name, quantization_config=bnb_config, token="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"
-            )
+            ).to("cuda")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name, token="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")
-            #self.model_pipeline = pipeline(
-            #    "text-generation", 
-            #    model=model_name,
-            #    model_kwargs={
-            #        #"quantization_config": bnb_config,
-            #        "torch_dtype": torchfloat,
-            #        "device_map": "cuda",
-            #        
-             ##   },
-            #    max_length=max_length,
-            #    max_new_tokens=max_new_tokens,
-            #    truncation=True,
-            #    token="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",
-            #    temperature = 0.1,
-            #    top_k=1,
-            #    tools= self.pipelineTools
-            #)
+            
             print("Saving the model:",model_name," locally")
-            self.model.save_pretrained(save_directory)
             self.tokenizer.save_pretrained(save_directory)
-            #self.model_pipeline.model.save_pretrained(save_directory)
-            #self.model_pipeline.tokenizer.save_pretrained(save_directory)
+            print("the requested mode:",model_name,"is loaded")
             
-            
+        self.response = ""  
         self.agent_name = agent_name
         self.model_name = model_name
         if not message:
             message = "You are a helpful AI assistant. Maintain context and be concise.\n\n"
+        self.messages = [message]
         self.message = message
         if 'nstruct' in model_name:
-                self.messages = [dict({"role": "system", "content": self.message})]
-        else:
-            self.messages = ""
+                self.messages = [dict({"role": "system", "content": message})]
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.add_special_tokens({'pad_token': '|PAD|'})
                
-    def get_tool_schema(self,func: Callable) -> dict:
+    def old_get_tool_schema(self,func: Callable) -> dict:
         """
         Generate a JSON schema for a tool function.
 
@@ -167,16 +133,10 @@ class Agent:
         
     def initTools(self,tools=0):
         self.schema_tools = []
-        self.pipelineTools = []
         for tool in tools:
             self.tools[tool.__name__] = tool
         for tool in self.tools:
             self.schema_tools.append(self.get_tool_schema(self.tools[tool]))
-            self.pipelineTools.append(Tool(
-                                        name=tool,
-                                        func=self.tools[tool],
-                                        description=inspect.getdoc(self.tools[tool])
-                                    ))
 
               
     def create_system_prompt(self,prompt, extras=[]):
@@ -190,19 +150,18 @@ class Agent:
     def instruct_create_system_prompt(self,prompt, extras=[]):  ### for instruct models
         if self.iterations > 0:
             return self.messages
+        self.messages = [self.messages[0]]
         self.messages.append(dict({
             "role": "user", 
             "content": prompt
         }))
         
-        self.messages =  self.messages[-self.instruct_history:]
-        if self.message not in str(self.messages[0]['content']):
-            init_message = [dict({"role": "system", "content": self.message})]
-            self.messages = init_message + self.messages
         return self.messages
             
     def llm_create_system_prompt(self,prompt):
-        return self.system_messages+'\n'+prompt
+        self.messages = [self.messages[0]]
+        self.messages.append(prompt)
+        return '\n'.join(self.messages)
     
         
     def get_tool_schema(self,func: Callable) -> dict:
@@ -238,40 +197,36 @@ class Agent:
         }
     def generate_response(self,prompt):
         if 'nstruct' in self.model_name:
-            return self.instruct_generate_response(prompt)
+            result = self.instruct_generate_response(prompt)
+            print(result)
+            return result
         else:
-            return self.llm_generate_response(prompt)
+            result = self.llm_generate_response(prompt)
+            print(result)
+            return result
+        
         
     def instruct_generate_response(self,prompt):  #### given we are using instruct model and it is  tools compatible (if tools are stated)
         
         # Generate response
-        messages =  self.create_system_prompt(prompt)
-        
-        #response = self.model_pipeline(messages)[0]['generated_text']
-        #self.messages.append({
-        #    "role": "assistant", 
-        #    "content": response.split('ssistant:')[-1].split("User")[0],
-            
-        #})
-        
-        #print('---------------------------------------------------------------------------------')
-        #print('for messages:',messages)
-        #return response.split('ssistant:')[-1].split("User")[0]
-        
+        if self.iterations > 0:
+            messages = prompt
+        else:
+            messages =  self.create_system_prompt(prompt)
         text = self.tokenizer.apply_chat_template(
-            messages,
-            tools= list(self.tools.values()),
-            tokenize=False,
-            add_generation_prompt=True,
-            return_tensors="pt",
-            #return_dict = True
-        )
-       
+                messages,
+                tools= list(self.tools.values()),
+                tokenize=True,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                return_dict = True,
+                return_attention_mask=True
+            ).to("cuda")
+        #print('tools values',self.tools)
         #print('the text submitted:',text)
         # Generate response
-        inputs = self.tokenizer(text, return_tensors="pt", return_attention_mask=True).to(self.model.device)
-        #inputs = self.tokenizer.apply_chat_template(messages, tools=list(self.tools.values()), add_generation_prompt=True, return_dict=True, return_tensors="pt")
-        #inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
+        inputs = text
+        #inputs = self.tokenizer(text, return_tensors="pt",  return_attention_mask=True).to(self.model.device)
         
         generated_ids = self.model.generate(
             input_ids=inputs["input_ids"],
@@ -280,25 +235,38 @@ class Agent:
             max_new_tokens=384,
             temperature = 0.1,
             #pad_token_id=self.model.config.eos_token_id
-        )
+        ).to("cuda")
     
-        #generated_ids = self.model.generate(**inputs,max_new_tokens=384 )
         # Decode response
         response = self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-        #response = self.tokenizer.decode(generated_ids[0][len(inputs["input_ids"][0]):])
+        
+        response = response.replace('ssistant:','ssistant')
+        response = response.replace('Assistant','assistant\n\n')
+        response = response.replace('ssistant\n','ssistant\n\n').replace('ssistant\n\n\n','ssistant\n\n')
+        #print('------------------------------------------------------')
+        #text = self.tokenizer.apply_chat_template(
+        #        messages,
+        #        tools= list(self.tools.values()),
+        #        tokenize=False,
+        #        add_generation_prompt=True,
+        #        return_tensors="pt",
+        #        #return_dict = True,
+        #        return_attention_mask=True
+        #    )
+        #print('text is ',text)
         #print('*******************************************')
-        #print('response is:', response)
+        #print('response is:', self.tokenizer.decode(generated_ids[0][len(inputs["input_ids"][0])-60:]),'\niterations',self.iterations)
         #print('*******************************************')
-        cleaned_response = response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0]
+        #print('------------------------------------------------------')
+        #cleaned_response = response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0]
+        cleaned_response = self.tokenizer.decode(generated_ids[0][len(inputs["input_ids"][0]):], skip_special_tokens=True)
+        
         jsons, _ = json_data_list, text_parts = self.extract_all_json(cleaned_response)
         if len(jsons) > 0 and self.iterations < self.max_iterations:
             mod_tool_call = {}
             mod_tool_calls = []
             tool_calls = []
-            self.messages.append({
-                "role": "assistant", 
-                "content": response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0],
-            })
+            
             for json_data in jsons:
                 #print('tool_call',json_data)
                 
@@ -307,24 +275,41 @@ class Agent:
                     mod_tool_call['name'] = json_data['name']
                     mod_tool_call['arguments'] = json_data['parameters']
                     json_result = self.tools[json_data['name']](**json_data['parameters'])
-                    tool_calls.append({"type": "function", "function": mod_tool_call})
-                    mod_tool_calls.append({"role": "ipython", "name": json_data['name'], "content": json_result})
+                    tool_call = {"name": json_data['name'], "arguments": {**json_data['parameters']}}
+                    messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
+                    messages.append({"role": "tool", "name": json_data['name'], "content": json_result})
+                    messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
+                    messages.append({"role": "tool", "name": json_data['name'], "content": json_result})
+                    self.iterations += 1
+                    #print('response is:',response)
+                    return self.instruct_generate_response(messages)
+                    #tool_calls.append({"type": "function", "function": mod_tool_call})
+    
+                    #mod_tool_calls.append({"role": "ipython", "name": json_data['name'], "content": json_result})
                 except:
-                    print(json_data['name'],'not a valid tool')
+                    self.iterations = 0
+                    print('It is not a valid tool:',cleaned_response,'not a valid tool')
             
-            self.messages.append({"role": "assistant", "content": tool_calls})
-            for tool in mod_tool_calls:
-                self.messages.append(tool)
-            self.iterations += 1
-            #print('resubmit the prompt for iteration',self.iterations)
-            return self.generate_response(prompt)
-        else:
+            #self.messages.append({"role": "assistant", "content": tool_calls})
+            #for tool in mod_tool_calls:
+            #    self.messages.append(tool)
+            
             self.iterations = 0
+            self.reset()
+            #print('resubmit the prompt for iteration',self.iterations)
+            #return self.generate_response(prompt)
+        else:
+            
+                self.iterations = 0
+                self.reset()
+            
+                
                 
                 #tool_call = {"name": "list_files", "arguments": {"location": "Paris, France"}}
                 #messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
         #print('all ended with the messages',self.messages)
         #print('-------------------------------------------------------------------------------------------------')
+        self.response = cleaned_response
         return cleaned_response
     
     def extract_all_json(self,text):
@@ -367,19 +352,17 @@ class Agent:
         if len(message) == 0:
             self.messages = [self.messages[0]]
         else:
-            self.messages = [{"role":"system", "content":message}]
+            if 'nstruct' in self.model_name:
+                self.messages = [{"role":"system", "content":message}]
+            else:
+                self.messages = [message]
         return
     
     def llm_generate_response(self, prompt): # if the model is not instruct
         # Prepare input
-        
         messages = self.create_system_prompt(prompt)
-        text = messages
-        print('llm result: ')
-        response = self.model_pipeline(prompt)[0]['generated_text']
-        return response[len(prompt):].strip()
         # Generate response
-        inputs = self.tokenizer(question, return_tensors="pt").to(self.model.device)
+        inputs = self.tokenizer(messages, return_tensors="pt").to(self.model.device)
         generated_ids = self.model.generate(
             #input_ids=inputs["input_ids"],
             **inputs,
@@ -389,11 +372,12 @@ class Agent:
             temperature=0.7,
             top_p=0.9,
             pad_token_id=self.model.config.eos_token_id
-        )
+        ).to(self.model.device)
         
         # Decode response
         response = self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-        return response[len(text):].strip()
+        print('native response',response)
+        return response[len(messages):].strip()
     
 
 
@@ -545,7 +529,25 @@ def list_llm_tools(tools_dir="toolsfn", modules=None):
 # %%
 
 # %%
-def agentthis(prompt="",message="", modelsel=1, asis=1, tools = []):
+class AgentMemory(Agent):
+    def __init__(self,*args):
+        super().__init__(*args)
+        self.memory = 'initialized memory'
+        self.responses = []
+    def generate_response(self,*args):
+        returns = super().generate_response(*args)
+        
+        self.responses.append(self.response)
+        #print('selfresponses',self.response)
+        
+        return returns
+    
+        
+
+# %%
+
+# %%
+def agentthis(prompt="",message="", modelsel=1, asis=1, tools = [],memory='no'):
     READER_MODEL_NAME = {}
     READER_MODEL_NAME[1] = "Qwen/Qwen2.5-Coder-7B-Instruct"
     READER_MODEL_NAME[2] = "tiiuae/falcon-7b-instruct"
@@ -557,9 +559,17 @@ def agentthis(prompt="",message="", modelsel=1, asis=1, tools = []):
     READER_MODEL_NAME[8] = "meta-llama/Meta-Llama-3.1-8b-Instruct"
     READER_MODEL_NAME[9] = "meta-llama/Llama-3.2-1B-Instruct"
     READER_MODEL_NAME[10] = "mistralai/Mixtral-8x22B-Instruct-v0.1"
+    READER_MODEL_NAME[11] = "EleutherAI/gpt-neo-2.7B"
+    READER_MODEL_NAME[12] = "meta-llama/Llama-3.2-3B"
+    
     if prompt == 'help':
-        print("Usage: prompt, system_message, modelsel,asis")
-        print("prompt: leave it empty most of the cases, system_message: the role of the model, modelsel: as of below, asis: 1 for best quality")
+        print("Usage: prompt, system_message, modelsel,asis,tools, memory")
+        print("prompt: leave it empty most of the cases, system_message: the role of the model, modelsel: as of below, \n \
+                asis: 1 for best quality \n \
+                tools: you can define the tools in your code and in the directory:tools_fn under this Agent.py file \n \
+                    the tool doc string must contain:'llmtool' \n \
+                before defining the agent, run tools = Agent.list_llm_tools(), then add these tools to the agentthis(...) \
+                memory == yes/no (keep the summary of the chat)")
         print("it returns: response, agent... ")
         print("you can use the agent.generate_response, and agent.messages, agent.instruct_history to change the memorization")
         print("modelsel can be a number to select the following:")
@@ -573,9 +583,13 @@ def agentthis(prompt="",message="", modelsel=1, asis=1, tools = []):
         print("modelsel = 8: meta-llama/Meta-Llama-3.1-8b-Instruct")
         print("modelsel = 9: meta-llama/Llama-3.2-1B-Instruct")
         print("modelsel = 10: mistralai/Mixtral-8x22B-Instruct-v0.1")
+        print("modelsel = 11: EleutherAI/gpt-neo-2.7B")
+        print("modelsel = 12: meta-llama/Llama-3.2-3B")
         return
-    
-    agent = Agent(READER_MODEL_NAME[modelsel],'agent1', message, asis, tools)
+    if memory != "no" :
+        agent = AgentMemory(READER_MODEL_NAME[modelsel],'agent1', message, asis, tools)
+    else:
+        agent = Agent(READER_MODEL_NAME[modelsel],'agent1', message, asis, tools)
     if not prompt:
         prompt = 'Are you ready ?'
     #agent1_response = agent.generate_response(prompt)
