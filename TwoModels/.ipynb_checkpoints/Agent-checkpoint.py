@@ -195,14 +195,16 @@ class Agent:
                 }
             }
         }
-    def generate_response(self,prompt):
+    def generate_response(self,prompt, print_result='no'):
         if 'nstruct' in self.model_name:
             result = self.instruct_generate_response(prompt)
-            print(result)
+            if print_result == 'yes':
+                print(result)
             return result
         else:
             result = self.llm_generate_response(prompt)
-            print(result)
+            if print_result == 'yes':
+                print(result)
             return result
         
         
@@ -272,6 +274,7 @@ class Agent:
                 
                 #json_result = globals().get(json_data['name'])(**json_data['parameters'])
                 try:
+                    print('querying my tool', json_data['name'])
                     mod_tool_call['name'] = json_data['name']
                     mod_tool_call['arguments'] = json_data['parameters']
                     json_result = self.tools[json_data['name']](**json_data['parameters'])
@@ -532,14 +535,28 @@ def list_llm_tools(tools_dir="toolsfn", modules=None):
 class AgentMemory(Agent):
     def __init__(self,*args):
         super().__init__(*args)
-        self.memory = 'initialized memory'
+        self.memory = ''
         self.responses = []
-    def generate_response(self,*args):
-        returns = super().generate_response(*args)
-        
+        self.summarize="You are excellent in summarization, please summarize the below text in less statements. keep all the information you find like names, locations, times, ..etc."
+        self.checkmemory="you can check if the infomration is found in a given text or not')"
+        self.memoryAgent = agentthis(prompt="",message=self.summarize, modelsel=1, asis=0, tools=[],memory='no') 
+    def generate_response(self,prompt,*args):
+        if self.memory:
+            self.memoryAgent.reset(self.checkmemory)
+            found = self.memoryAgent.generate_response('You are given the following text:\n \
+                '+'\n'.join(self.responses)+'\n please check if you can find the information regarding the user request: \
+                '+ prompt+'\n in this text. if you donot find the requested info then reply: "not found" and do not add any more text\n \
+                and if you find the information then reply with this info', 'no')
+            if 'not found' not in found.lower():
+                print(found)
+                return found
+        returns = super().generate_response(prompt)
         self.responses.append(self.response)
+        self.memoryAgent.reset(self.summarize)
+        prompt = self.memory+ '\n' + self.response
+        self.memory = self.memoryAgent.generate_response("summarize the following in less number of statements:\n" + prompt, "no")
         #print('selfresponses',self.response)
-        
+        print(returns)
         return returns
     
         
