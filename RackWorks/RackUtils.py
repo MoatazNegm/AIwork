@@ -5,11 +5,7 @@ import json
 from collections import Counter, deque
 import redis
 
-from Rack_global_vars import colors_info, LANs,Cables, max_box_wattage, max_box_height, rack_height_u, rack_weight_kg,rack_width_mm
-from Rack_global_vars import rack_depth_mm, u_height_mm, rack_height_mm, rack_height_u, rack_cg_height_mm, unit_to_cm, u_height_mm
-from Rack_global_vars import device_to_rackside, racktop_to_ceiling, rack_to_rack, batch_size, max_iter,  colors, switch_to_add
-from Rack_global_vars import color_metadata_tuple, colors_weight, colors_height, colors_wattage, total_balls
-
+import Rack_global_vars as config
 
 
 @functools.cache
@@ -20,7 +16,7 @@ def get_redis_connection(ip="192.168.8.10"):
 
 def get_the_right_cable(switch,absolute_sw_to_dev, devspeed):
     
-    cables = Cables[switch]
+    cables = config.Cables[switch]
 
     
     higher_lengths =(
@@ -46,7 +42,7 @@ def calculate_cable_lengths(rack):
         if 'LAN' in device:
             lanname, switch = device.split('__')
             lans[dev] = dict()
-            device_specs = [x for x in LANs[lanname]['switch'] if x['model'] == switch ][0]
+            device_specs = [x for x in config.LANs[lanname]['switch'] if x['model'] == switch ][0]
             lans[dev] = device_specs.copy()
             lans[dev]['position'] = rack[dev]
             lans[dev]['id'] = dev_id
@@ -68,21 +64,21 @@ def calculate_cable_lengths(rack):
             device = '_'.join(dev.split('_')[:-1])
 
             if 'LAN' not in device :
-                if colors_info[device][lanname]['count'] > 0:
+                if config.colors_info[device][lanname]['count'] > 0:
                     if dev not in devices:
                         devices[dev] = dict()
                     devices[dev]['position'] = rack[dev]
                     devices[dev]['id'] = dev_id
-                    no_ports = colors_info[device][lanname]['count']
-                    speed_ratio =  colors_info[device][lanname]['speed'] / lans[lan]['speed']
+                    no_ports = config.colors_info[device][lanname]['count']
+                    speed_ratio =  config.colors_info[device][lanname]['speed'] / lans[lan]['speed']
                     device_position = rack[dev]
                     # absolute cable  lengeth in meters:
-                    absolute_sw_to_dev = ((lans[lan]['position'] - device_position) + 2*device_to_rackside)*unit_to_cm/100
-                    cable = get_the_right_cable(switch,absolute_sw_to_dev,colors_info[device][lanname]['speed'])
-                    no_of_cables = colors_info[device][lanname]['count'] * speed_ratio
+                    absolute_sw_to_dev = ((lans[lan]['position'] - device_position) + 2*device_to_rackside)*config.unit_to_cm/100
+                    cable = get_the_right_cable(switch,absolute_sw_to_dev,config.colors_info[device][lanname]['speed'])
+                    no_of_cables = config.colors_info[device][lanname]['count'] * speed_ratio
                     devices[dev][lan] = dict()
-                    devices[dev][lan]['cable_count'] = colors_info[device][lanname]['count']
-                    devices[dev][lan]['speed'] = colors_info[device][lanname]['speed']
+                    devices[dev][lan]['cable_count'] = config.colors_info[device][lanname]['count']
+                    devices[dev][lan]['speed'] = config.colors_info[device][lanname]['speed']
                     if speed_ratio < 1:
                         lans[lan]['half_for_split'] +=1
                         devices[dev][lan]['half_for_split'] = 1
@@ -208,13 +204,13 @@ def is_switch_relevent(rack):
     for device in rack:
         if 'LAN' not in device:
             for lan in alllans:
-                if colors_info[device][lan]['count'] > 0:
+                if config.colors_info[device][lan]['count'] > 0:
                     include_lan.add(lan)
     execlude_lan = alllans - include_lan
     return list(execlude_lan)
 
 @functools.cache 
-def check_box_limits(box_tuple, color_metadata_tuple, max_box_wattage, max_box_height):
+def check_box_limits(box_tuple, color_metadata_tuple, ):
     color_metadata = dict(color_metadata_tuple)
     box = dict(box_tuple)
     wattage = height = 0
@@ -223,7 +219,7 @@ def check_box_limits(box_tuple, color_metadata_tuple, max_box_wattage, max_box_h
         wattage += count * meta[1]
         height += count * meta[2]
         # Early exit if limits exceeded
-        if wattage > max_box_wattage or height > max_box_height:
+        if wattage > config.max_box_wattage or height > config.max_box_height:
             return False, wattage, height
     return True, wattage, height
 
@@ -258,15 +254,15 @@ def is_rack_stable(servers):
     Checks if the rack configuration is likely stable based on the combined
     vertical center of gravity.
     """
-    total_weight = rack_weight_kg + sum(s[1] for s in servers)
+    total_weight = config.rack_weight_kg + sum(s[1] for s in servers)
     if total_weight == 0:
         return True
 
-    combined_vertical_cg = (rack_weight_kg * rack_cg_height_mm +
+    combined_vertical_cg = (config.rack_weight_kg * config.rack_cg_height_mm +
                              sum(s[1] * s[0] for s in servers)) / total_weight
 
     stability_threshold_fraction = 0.5  # Adjust as needed
-    return combined_vertical_cg <= rack_height_mm * stability_threshold_fraction
+    return combined_vertical_cg <= config.rack_height_mm * stability_threshold_fraction
 
 
 
@@ -297,7 +293,7 @@ def find_stable_positions_greedy_complex( servers_to_place_tuple,  prioritize_to
             if 'LAN' in server_type:
                 lan , sw_model = server_type.split('__')
 
-                specs = [x for x in LANs[lan]['switch'] if x['model'] == sw_model][0]
+                specs = [x for x in config.LANs[lan]['switch'] if x['model'] == sw_model][0]
 
             else:
                 print(f"Warning: Specifications not found for server type '{server_type}'. Skipping.")
@@ -343,20 +339,20 @@ def find_stable_positions_greedy_complex( servers_to_place_tuple,  prioritize_to
         for _ in range(loops):
             if not prioritize_top:
                 placed_servers_info = []
-                occupied_u = [False] * rack_height_u
+                occupied_u = [False] * config.rack_height_u
                 for server in all_servers:
                     server_height_u = server['height']
                     server_weight_kg = server['weight']
-                    server_cg_offset = (server_height_u * u_height_mm) / 2
+                    server_cg_offset = (server_height_u * config.u_height_mm) / 2
                     placed = False
-                    for i in range(rack_height_u):
+                    for i in range(config.rack_height_u):
                         if not occupied_u[i]:
                             start_u = i
-                            server_base_height = start_u * u_height_mm
+                            server_base_height = start_u * config.u_height_mm
                             server_cg = server_base_height + server_cg_offset
                             can_place = True
                             for u_check in range(start_u, start_u + server_height_u):
-                                if u_check >= rack_height_u or occupied_u[u_check]:
+                                if u_check >= config.rack_height_u or occupied_u[u_check]:
                                     can_place = False
                                     break
                             if can_place:
@@ -364,7 +360,7 @@ def find_stable_positions_greedy_complex( servers_to_place_tuple,  prioritize_to
                                 if is_rack_stable(temp_positions):
                                     placed_servers_info.append({'cg': server_cg, 'weight': server_weight_kg, 'type': server['type'], 'height': server['height'], 'start_u': start_u})
                                     for u in range(start_u, start_u + server_height_u):
-                                        if u < rack_height_u:
+                                        if u < config.rack_height_u:
                                             occupied_u[u] = True
                                     placed = True
                                     break
@@ -376,20 +372,20 @@ def find_stable_positions_greedy_complex( servers_to_place_tuple,  prioritize_to
                     final_placement[f"{server_info['type']}_{i+1}"] = server_info['start_u'] + 1
             else:
                 placed_servers_info = []
-                occupied_u = [False] * rack_height_u
+                occupied_u = [False] * config.rack_height_u
                 for server in all_servers:
                     server_height_u = server['height']
                     server_weight_kg = server['weight']
-                    server_cg_offset = (server_height_u * u_height_mm) / 2
+                    server_cg_offset = (server_height_u * config.u_height_mm) / 2
                     placed = False
-                    for i in range(rack_height_u - 1, -1, -1):
+                    for i in range(config.rack_height_u - 1, -1, -1):
                         if not occupied_u[i]:
                             start_u = i
-                            server_base_height = start_u * u_height_mm
+                            server_base_height = start_u * config.u_height_mm
                             server_cg = server_base_height + server_cg_offset
                             can_place = True
                             for u_check in range(start_u, start_u + server_height_u):
-                                if u_check >= rack_height_u or occupied_u[u_check]:
+                                if u_check >= config.rack_height_u or occupied_u[u_check]:
                                     can_place = False
                                     break
                             if can_place:
@@ -397,7 +393,7 @@ def find_stable_positions_greedy_complex( servers_to_place_tuple,  prioritize_to
                                 if is_rack_stable(temp_positions):
                                     placed_servers_info.append({'cg': server_cg, 'weight': server_weight_kg, 'type': server['type'], 'height': server['height'], 'start_u': start_u}) # DEBUG_TAG: append B #append B
                                     for u in range(start_u, start_u + server_height_u):
-                                        if u < rack_height_u:
+                                        if u < config.rack_height_u:
                                             occupied_u[u] = True
                                     placed = True
                                     break
@@ -407,7 +403,7 @@ def find_stable_positions_greedy_complex( servers_to_place_tuple,  prioritize_to
 
                 final_placement = {}
                 sorted_servers = sorted(placed_servers_info, key=lambda x: x['start_u'], reverse=True)
-                occupied_map = [False] * rack_height_u
+                occupied_map = [False] * config.rack_height_u
                 placed_index = 1
                 for server in sorted_servers:
                     start_u = server['start_u']
@@ -416,13 +412,13 @@ def find_stable_positions_greedy_complex( servers_to_place_tuple,  prioritize_to
                     for u in range(start_u, -1, -1):
                         can_place_here = True
                         for check_u in range(u, u + server_height):
-                            if check_u >= rack_height_u or occupied_map[check_u]:
+                            if check_u >= config.rack_height_u or occupied_map[check_u]:
                                 can_place_here = False
                                 break
                         if can_place_here:
                             final_placement[f"{server_type}_{placed_index}"] = u + 1
                             for occupy_u in range(u, u + server_height):
-                                if occupy_u < rack_height_u:
+                                if occupy_u < config.rack_height_u:
                                     occupied_map[occupy_u] = True
                             placed_index += 1
                             break
@@ -430,7 +426,7 @@ def find_stable_positions_greedy_complex( servers_to_place_tuple,  prioritize_to
                             # Fallback to the initially found stable position
                             final_placement[f"{server_type}_{placed_index}"] = start_u + 1
                             for occupy_u in range(start_u, start_u + server_height):
-                                if occupy_u < rack_height_u:
+                                if occupy_u < config.rack_height_u:
                                     occupied_map[occupy_u] = True
                             placed_index += 1
 
