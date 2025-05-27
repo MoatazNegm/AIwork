@@ -3,18 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AdminLTE 3 | Form Example</title>
+  <title>Data Center Configuration Tool</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/dist/css/all.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/fontawesome-free/css/all.min.css') }}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/dist/css/adminlte.min.css') }}">
   <!-- SweetAlert2 -->
   <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
   <!-- Toastr -->
   <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/toastr/toastr.min.css') }}">
+  <style>
+    .tab-content {
+      padding-top: 20px;
+    }
+    .form-section {
+      display: none;
+    }
+    .form-section.active {
+      display: block;
+    }
+    .entries-section {
+      margin-top: 30px;
+    }
+    .clickable-row {
+      cursor: pointer;
+    }
+    .clickable-row:hover {
+      background-color: #f5f5f5;
+    }
+  </style>
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -36,7 +56,7 @@
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="#" class="brand-link">
-      <span class="brand-text font-weight-light">AdminLTE 3</span>
+      <span class="brand-text font-weight-light">Data Center Config</span>
     </a>
 
     <!-- Sidebar -->
@@ -44,10 +64,59 @@
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- LAN Leaves -->
           <li class="nav-item">
-            <a href="#" class="nav-link active">
-              <i class="nav-icon fas fa-edit"></i>
-              <p>Forms</p>
+            <a href="#" class="nav-link" id="lan-leaves-link">
+              <i class="nav-icon fas fa-network-wired"></i>
+              <p>LAN Leaves</p>
+            </a>
+          </li>
+          
+          <!-- LAN Spines -->
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="lan-spines-link">
+              <i class="nav-icon fas fa-sitemap"></i>
+              <p>LAN Spines</p>
+            </a>
+          </li>
+          
+          <!-- Compute Nodes -->
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="compute-nodes-link">
+              <i class="nav-icon fas fa-server"></i>
+              <p>Compute Nodes</p>
+            </a>
+          </li>
+          
+          <!-- Storage Blocks -->
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="storage-blocks-link">
+              <i class="nav-icon fas fa-hdd"></i>
+              <p>Storage Blocks</p>
+            </a>
+          </li>
+          
+          <!-- Cables -->
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="cables-link">
+              <i class="nav-icon fas fa-ethernet"></i>
+              <p>Cables</p>
+            </a>
+          </li>
+          
+          <!-- Rack Rows -->
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="rack-rows-link">
+              <i class="nav-icon fas fa-th-large"></i>
+              <p>Rack Rows</p>
+            </a>
+          </li>
+          
+          <!-- JSON Output -->
+          <li class="nav-item">
+            <a href="#" class="nav-link" id="json-output-link">
+              <i class="nav-icon fas fa-code"></i>
+              <p>JSON Output</p>
             </a>
           </li>
         </ul>
@@ -64,12 +133,12 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>AJAX Form Example</h1>
+            <h1>Data Center Configuration</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">AJAX Form</li>
+              <li class="breadcrumb-item active">Configuration</li>
             </ol>
           </div>
         </div>
@@ -79,54 +148,896 @@
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-        <div class="row">
-          <!-- left column -->
-          <div class="col-md-12">
-            <!-- general form elements -->
-            <div class="card card-primary">
-              <div class="card-header">
-                <h3 class="card-title">Contact Form</h3>
-              </div>
-              <!-- /.card-header -->
-              <!-- form start -->
-              <form id="ajaxForm">
-                <div class="card-body">
-                  <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name">
-                  </div>
-                  <div class="form-group">
-                    <label for="email">Email address</label>
-                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter email">
-                  </div>
-                  <div class="form-group">
-                    <label for="message">Message</label>
-                    <textarea class="form-control" id="message" name="message" rows="3" placeholder="Enter your message"></textarea>
-                  </div>
-                </div>
-                <!-- /.card-body -->
-
-                <div class="card-footer">
-                  <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
-              </form>
+        
+        <!-- LAN Leaves Section -->
+        <div class="form-section" id="lan-leaves-section">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Add/Edit LAN Leaf</h3>
             </div>
-            <!-- /.card -->
-
-            <!-- Response Card -->
-            <div class="card card-success" id="responseCard" style="display: none;">
+            <form id="lanLeafForm">
+              <div class="card-body">
+                <!-- Hidden field for edit mode -->
+                <input type="hidden" id="edit_index" name="edit_index" value="">
+                
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="lan_name">LAN Name</label>
+                      <input type="text" class="form-control" id="lan_name" name="lan_name" placeholder="e.g., LAN_1" required>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="fixed_qty">Fixed Quantity</label>
+                      <input type="number" class="form-control" id="fixed_qty" name="fixed_qty" placeholder="e.g., 12" required>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="lan_type">Type</label>
+                      <input type="text" class="form-control" id="lan_type" name="lan_type" placeholder="e.g., 400gbsNDR" required>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="topology">Topology</label>
+                      <input type="text" class="form-control" id="topology" name="topology" placeholder="e.g., halfports_spine_leaf" required>
+                    </div>
+                  </div>
+                </div>
+                
+                <h4 class="mt-4">Switch Configuration</h4>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="switch_model">Switch Model</label>
+                      <input type="text" class="form-control" id="switch_model" name="switch_model" placeholder="e.g., IB+400" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="switch_ports">Ports</label>
+                      <input type="number" class="form-control" id="switch_ports" name="switch_ports" placeholder="e.g., 64" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="switch_speed">Speed</label>
+                      <input type="number" class="form-control" id="switch_speed" name="switch_speed" placeholder="e.g., 400" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="switch_height">Height</label>
+                      <input type="number" class="form-control" id="switch_height" name="switch_height" placeholder="e.g., 2" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="switch_wattage">Wattage</label>
+                      <input type="number" class="form-control" id="switch_wattage" name="switch_wattage" placeholder="e.g., 2000" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="switch_weight">Weight</label>
+                      <input type="number" class="form-control" id="switch_weight" name="switch_weight" placeholder="e.g., 20" required>
+                    </div>
+                  </div>
+                </div>
+                
+                <h4 class="mt-4">Uplink Configuration (Optional)</h4>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="uplink_count">Uplink Count</label>
+                      <input type="number" class="form-control" id="uplink_count" name="uplink_count" placeholder="e.g., 4">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="uplink_speed">Uplink Speed</label>
+                      <input type="number" class="form-control" id="uplink_speed" name="uplink_speed" placeholder="e.g., 800">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary" id="lanLeafSubmitBtn">Add LAN Leaf</button>
+                <button type="button" class="btn btn-secondary" id="lanLeafCancelBtn" style="display: none;">Cancel Edit</button>
+                <button type="button" class="btn btn-danger float-right clear-entries" data-category="lan_leaves">Clear LAN Leaves</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- LAN Leaves Entries -->
+          <div class="entries-section">
+            <div class="card card-success">
               <div class="card-header">
-                <h3 class="card-title">Server Response</h3>
+                <h3 class="card-title">LAN Leaves Entries</h3>
               </div>
               <div class="card-body">
-                <pre id="responseData"></pre>
+                <div class="table-responsive">
+                  <table class="table table-bordered table-striped" id="lanLeavesTable">
+                    <thead>
+                      <tr>
+                        <th>LAN Name</th>
+                        <th>Fixed Qty</th>
+                        <th>Type</th>
+                        <th>Topology</th>
+                        <th>Switch Details</th>
+                      </tr>
+                    </thead>
+                    <tbody id="lanLeavesTableBody">
+                      <!-- Entries will be added here dynamically -->
+                      {% for entry_index in range(lan_leaves|length) %}
+                        {% set entry = lan_leaves[entry_index] %}
+                        {% for lan_name, details in entry.items() %}
+                        <tr class="clickable-row" data-index="{{ entry_index }}">
+                          <td>{{ lan_name }}</td>
+                          <td>{{ details.fixedqty }}</td>
+                          <td>{{ details.type }}</td>
+                          <td>{{ details.topology }}</td>
+                          <td>
+                            <button type="button" class="btn btn-info btn-sm view-switch-details" data-toggle="modal" data-target="#lanLeafModal{{ entry_index }}">
+                              View Switch Details
+                            </button>
+                            
+                            <!-- Switch Modal -->
+                            <div class="modal fade" id="lanLeafModal{{ entry_index }}" tabindex="-1" role="dialog" aria-labelledby="switchModalLabel" aria-hidden="true">
+                              <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title" id="switchModalLabel">Switch Details for {{ lan_name }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                      <span aria-hidden="true">&times;</span>
+                                    </button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <table class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                          <th>Model</th>
+                                          <th>Ports</th>
+                                          <th>Speed</th>
+                                          <th>Height</th>
+                                          <th>Wattage</th>
+                                          <th>Weight</th>
+                                          <th>Uplink Count</th>
+                                          <th>Uplink Speed</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {% for switch in details.switch %}
+                                        <tr>
+                                          <td>{{ switch.model }}</td>
+                                          <td>{{ switch.ports }}</td>
+                                          <td>{{ switch.speed }}</td>
+                                          <td>{{ switch.height }}</td>
+                                          <td>{{ switch.wattage }}</td>
+                                          <td>{{ switch.weight }}</td>
+                                          <td>{{ switch.uplink_count if switch.uplink_count is defined else 'N/A' }}</td>
+                                          <td>{{ switch.uplink_speed if switch.uplink_speed is defined else 'N/A' }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-            <!-- /.card -->
           </div>
-          <!--/.col (left) -->
         </div>
-        <!-- /.row -->
+        
+        <!-- LAN Spines Section -->
+        <div class="form-section" id="lan-spines-section">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Add/Edit LAN Spine</h3>
+            </div>
+            <form id="lanSpineForm">
+              <div class="card-body">
+                <!-- Hidden field for edit mode -->
+                <input type="hidden" id="spine_edit_index" name="edit_index" value="">
+                
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="spine_name">Spine Name</label>
+                      <input type="text" class="form-control" id="spine_name" name="spine_name" placeholder="e.g., LAN_1_spines" required>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="fixed_qty_spine">Fixed Quantity</label>
+                      <input type="number" class="form-control" id="fixed_qty_spine" name="fixed_qty" placeholder="e.g., 8" required>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="spine_type">Type</label>
+                      <input type="text" class="form-control" id="spine_type" name="spine_type" placeholder="e.g., 400gbsNDR" required>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label for="spine_topology">Topology</label>
+                      <input type="text" class="form-control" id="spine_topology" name="topology" placeholder="e.g., halfports_spine_leaf" required>
+                    </div>
+                  </div>
+                </div>
+                
+                <h4 class="mt-4">Switch Configuration</h4>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="spine_switch_model">Switch Model</label>
+                      <input type="text" class="form-control" id="spine_switch_model" name="switch_model" placeholder="e.g., IB+400" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="spine_switch_ports">Ports</label>
+                      <input type="number" class="form-control" id="spine_switch_ports" name="switch_ports" placeholder="e.g., 64" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="spine_switch_speed">Speed</label>
+                      <input type="number" class="form-control" id="spine_switch_speed" name="switch_speed" placeholder="e.g., 400" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="spine_switch_height">Height</label>
+                      <input type="number" class="form-control" id="spine_switch_height" name="switch_height" placeholder="e.g., 2" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="spine_switch_wattage">Wattage</label>
+                      <input type="number" class="form-control" id="spine_switch_wattage" name="switch_wattage" placeholder="e.g., 2000" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="spine_switch_weight">Weight</label>
+                      <input type="number" class="form-control" id="spine_switch_weight" name="switch_weight" placeholder="e.g., 20" required>
+                    </div>
+                  </div>
+                </div>
+                
+                <h4 class="mt-4">Uplink Configuration (Optional)</h4>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="spine_uplink_count">Uplink Count</label>
+                      <input type="number" class="form-control" id="spine_uplink_count" name="uplink_count" placeholder="e.g., 4">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="spine_uplink_speed">Uplink Speed</label>
+                      <input type="number" class="form-control" id="spine_uplink_speed" name="uplink_speed" placeholder="e.g., 800">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary" id="lanSpineSubmitBtn">Add LAN Spine</button>
+                <button type="button" class="btn btn-secondary" id="lanSpineCancelBtn" style="display: none;">Cancel Edit</button>
+                <button type="button" class="btn btn-danger float-right clear-entries" data-category="lan_spines">Clear LAN Spines</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- LAN Spines Entries -->
+          <div class="entries-section">
+            <div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title">LAN Spines Entries</h3>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-bordered table-striped" id="lanSpinesTable">
+                    <thead>
+                      <tr>
+                        <th>Spine Name</th>
+                        <th>Fixed Qty</th>
+                        <th>Type</th>
+                        <th>Topology</th>
+                        <th>Switch Details</th>
+                      </tr>
+                    </thead>
+                    <tbody id="lanSpinesTableBody">
+                      <!-- Entries will be added here dynamically -->
+                      {% for entry_index in range(lan_spines|length) %}
+                        {% set entry = lan_spines[entry_index] %}
+                        {% for spine_name, details in entry.items() %}
+                        <tr class="clickable-row" data-index="{{ entry_index }}">
+                          <td>{{ spine_name }}</td>
+                          <td>{{ details.fixedqty }}</td>
+                          <td>{{ details.type }}</td>
+                          <td>{{ details.topology }}</td>
+                          <td>
+                            <button type="button" class="btn btn-info btn-sm view-switch-details" data-toggle="modal" data-target="#lanSpineModal{{ entry_index }}">
+                              View Switch Details
+                            </button>
+                            
+                            <!-- Switch Modal -->
+                            <div class="modal fade" id="lanSpineModal{{ entry_index }}" tabindex="-1" role="dialog" aria-labelledby="switchModalLabel" aria-hidden="true">
+                              <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title" id="switchModalLabel">Switch Details for {{ spine_name }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                      <span aria-hidden="true">&times;</span>
+                                    </button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <table class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                          <th>Model</th>
+                                          <th>Ports</th>
+                                          <th>Speed</th>
+                                          <th>Height</th>
+                                          <th>Wattage</th>
+                                          <th>Weight</th>
+                                          <th>Uplink Count</th>
+                                          <th>Uplink Speed</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {% for switch in details.switch %}
+                                        <tr>
+                                          <td>{{ switch.model }}</td>
+                                          <td>{{ switch.ports }}</td>
+                                          <td>{{ switch.speed }}</td>
+                                          <td>{{ switch.height }}</td>
+                                          <td>{{ switch.wattage }}</td>
+                                          <td>{{ switch.weight }}</td>
+                                          <td>{{ switch.uplink_count if switch.uplink_count is defined else 'N/A' }}</td>
+                                          <td>{{ switch.uplink_speed if switch.uplink_speed is defined else 'N/A' }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Compute Nodes Section -->
+        <div class="form-section" id="compute-nodes-section">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Add Compute Node</h3>
+            </div>
+            <form id="computeForm">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="compute_name">Compute Name</label>
+                      <input type="text" class="form-control" id="compute_name" name="compute_name" placeholder="e.g., std_compute" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="count">Count</label>
+                      <input type="number" class="form-control" id="count" name="count" placeholder="e.g., 330" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="wattage">Wattage</label>
+                      <input type="number" step="0.1" class="form-control" id="wattage" name="wattage" placeholder="e.g., 2380" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="height">Height</label>
+                      <input type="number" step="0.1" class="form-control" id="height" name="height" placeholder="e.g., 2" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="weight">Weight</label>
+                      <input type="number" step="0.1" class="form-control" id="weight" name="weight" placeholder="e.g., 28.7" required>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- LAN Configuration -->
+                <h4 class="mt-4">LAN Configuration</h4>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="card card-secondary">
+                      <div class="card-header">
+                        <h3 class="card-title">LAN Specifications</h3>
+                      </div>
+                      <div class="card-body">
+                        <div class="row">
+                          <!-- LAN_1 -->
+                          <div class="col-md-4">
+                            <div class="card">
+                              <div class="card-header">
+                                <h3 class="card-title">LAN_1 (IB)</h3>
+                              </div>
+                              <div class="card-body">
+                                <div class="form-group">
+                                  <label for="lan_1_count">Count</label>
+                                  <input type="number" class="form-control" id="lan_1_count" name="lan_1_count" value="0">
+                                </div>
+                                <div class="form-group">
+                                  <label for="lan_1_speed">Speed</label>
+                                  <input type="number" class="form-control" id="lan_1_speed" name="lan_1_speed" value="400">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- LAN_2 -->
+                          <div class="col-md-4">
+                            <div class="card">
+                              <div class="card-header">
+                                <h3 class="card-title">LAN_2 (FE storage)</h3>
+                              </div>
+                              <div class="card-body">
+                                <div class="form-group">
+                                  <label for="lan_2_count">Count</label>
+                                  <input type="number" class="form-control" id="lan_2_count" name="lan_2_count" value="0">
+                                </div>
+                                <div class="form-group">
+                                  <label for="lan_2_speed">Speed</label>
+                                  <input type="number" class="form-control" id="lan_2_speed" name="lan_2_speed" value="400">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- LAN_3 -->
+                          <div class="col-md-4">
+                            <div class="card">
+                              <div class="card-header">
+                                <h3 class="card-title">LAN_3 (GPU_net)</h3>
+                              </div>
+                              <div class="card-body">
+                                <div class="form-group">
+                                  <label for="lan_3_count">Count</label>
+                                  <input type="number" class="form-control" id="lan_3_count" name="lan_3_count" value="0">
+                                </div>
+                                <div class="form-group">
+                                  <label for="lan_3_speed">Speed</label>
+                                  <input type="number" class="form-control" id="lan_3_speed" name="lan_3_speed" value="400">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                          <!-- LAN_4 -->
+                          <div class="col-md-4">
+                            <div class="card">
+                              <div class="card-header">
+                                <h3 class="card-title">LAN_4 (mgmt 1)</h3>
+                              </div>
+                              <div class="card-body">
+                                <div class="form-group">
+                                  <label for="lan_4_count">Count</label>
+                                  <input type="number" class="form-control" id="lan_4_count" name="lan_4_count" value="0">
+                                </div>
+                                <div class="form-group">
+                                  <label for="lan_4_speed">Speed</label>
+                                  <input type="number" class="form-control" id="lan_4_speed" name="lan_4_speed" value="25">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- LAN_5 -->
+                          <div class="col-md-4">
+                            <div class="card">
+                              <div class="card-header">
+                                <h3 class="card-title">LAN_5 (mgmt 2)</h3>
+                              </div>
+                              <div class="card-body">
+                                <div class="form-group">
+                                  <label for="lan_5_count">Count</label>
+                                  <input type="number" class="form-control" id="lan_5_count" name="lan_5_count" value="0">
+                                </div>
+                                <div class="form-group">
+                                  <label for="lan_5_speed">Speed</label>
+                                  <input type="number" class="form-control" id="lan_5_speed" name="lan_5_speed" value="25">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- LAN_6 -->
+                          <div class="col-md-4">
+                            <div class="card">
+                              <div class="card-header">
+                                <h3 class="card-title">LAN_6 (OOB)</h3>
+                              </div>
+                              <div class="card-body">
+                                <div class="form-group">
+                                  <label for="lan_6_count">Count</label>
+                                  <input type="number" class="form-control" id="lan_6_count" name="lan_6_count" value="0">
+                                </div>
+                                <div class="form-group">
+                                  <label for="lan_6_speed">Speed</label>
+                                  <input type="number" class="form-control" id="lan_6_speed" name="lan_6_speed" value="1">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Add Compute Node</button>
+                <button type="button" class="btn btn-danger float-right clear-entries" data-category="compute">Clear Compute Nodes</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Compute Entries -->
+          <div class="entries-section">
+            <div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title">Compute Entries</h3>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-bordered table-striped" id="computeTable">
+                    <thead>
+                      <tr>
+                        <th>Compute Name</th>
+                        <th>Count</th>
+                        <th>Wattage</th>
+                        <th>Height</th>
+                        <th>Weight</th>
+                        <th>LAN Details</th>
+                      </tr>
+                    </thead>
+                    <tbody id="computeTableBody">
+                      <!-- Entries will be added here dynamically -->
+                      {% for entry_index in range(compute_entries|length) %}
+                        {% set entry = compute_entries[entry_index] %}
+                        {% for compute_name, details in entry.items() %}
+                        <tr>
+                          <td>{{ compute_name }}</td>
+                          <td>{{ details.count }}</td>
+                          <td>{{ details.wattage }}</td>
+                          <td>{{ details.height }}</td>
+                          <td>{{ details.weight }}</td>
+                          <td>
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#lanModal{{ entry_index }}">
+                              View LAN Details
+                            </button>
+                            
+                            <!-- LAN Modal -->
+                            <div class="modal fade" id="lanModal{{ entry_index }}" tabindex="-1" role="dialog" aria-labelledby="lanModalLabel" aria-hidden="true">
+                              <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title" id="lanModalLabel">LAN Details for {{ compute_name }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                      <span aria-hidden="true">&times;</span>
+                                    </button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <table class="table table-bordered">
+                                      <thead>
+                                        <tr>
+                                          <th>LAN</th>
+                                          <th>Count</th>
+                                          <th>Speed</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {% for lan_name, lan_details in details.items() %}
+                                          {% if lan_name.startswith('LAN_') %}
+                                          <tr>
+                                            <td>{{ lan_name }}</td>
+                                            <td>{{ lan_details.count }}</td>
+                                            <td>{{ lan_details.speed }}</td>
+                                          </tr>
+                                          {% endif %}
+                                        {% endfor %}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Storage Blocks Section -->
+        <div class="form-section" id="storage-blocks-section">
+          <div class="card">
+            <div class="card-body">
+              <h3>Storage Blocks</h3>
+              <p>This section will be implemented in a future update.</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Cables Section -->
+        <div class="form-section" id="cables-section">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Add Cable</h3>
+            </div>
+            <form id="cableForm">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="switch_model_cable">Switch Model</label>
+                      <input type="text" class="form-control" id="switch_model_cable" name="switch_model" placeholder="e.g., IB+400" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="cable_model">Cable Model</label>
+                      <input type="text" class="form-control" id="cable_model" name="cable_model" placeholder="e.g., 1.5m_400IB_copper" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="server_port_speed">Server Port Speed</label>
+                      <input type="number" class="form-control" id="server_port_speed" name="server_port_speed" placeholder="e.g., 400" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="split">Split</label>
+                      <input type="number" class="form-control" id="split" name="split" placeholder="e.g., 1" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="length">Length (m)</label>
+                      <input type="number" step="0.1" class="form-control" id="length" name="length" placeholder="e.g., 1.5" required>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Add Cable</button>
+                <button type="button" class="btn btn-danger float-right clear-entries" data-category="cables">Clear Cables</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Cables Entries -->
+          <div class="entries-section">
+            <div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title">Cables Entries</h3>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-bordered table-striped" id="cablesTable">
+                    <thead>
+                      <tr>
+                        <th>Switch Model</th>
+                        <th>Cable Model</th>
+                        <th>Server Port Speed</th>
+                        <th>Split</th>
+                        <th>Length (m)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="cablesTableBody">
+                      <!-- Entries will be added here dynamically -->
+                      {% for entry in cables_entries %}
+                        {% for switch_model, cables in entry.items() %}
+                          {% for cable in cables %}
+                          <tr>
+                            <td>{{ switch_model }}</td>
+                            <td>{{ cable.model }}</td>
+                            <td>{{ cable.server_port_speed }}</td>
+                            <td>{{ cable.split }}</td>
+                            <td>{{ cable.length }}</td>
+                          </tr>
+                          {% endfor %}
+                        {% endfor %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Rack Rows Section -->
+        <div class="form-section" id="rack-rows-section">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Add Rack Row</h3>
+            </div>
+            <form id="rackRowForm">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="group_name">Group Name</label>
+                      <input type="text" class="form-control" id="group_name" name="group_name" placeholder="e.g., Group" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="racks">Racks</label>
+                      <input type="number" class="form-control" id="racks" name="racks" placeholder="e.g., 10" required>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="group_count">Group Count</label>
+                      <input type="number" class="form-control" id="group_count" name="group_count" placeholder="e.g., 2" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="rack_to_rack">Rack to Rack (ft)</label>
+                      <input type="number" step="0.1" class="form-control" id="rack_to_rack" name="rack_to_rack" placeholder="e.g., 4.5" required>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="row_to_next_row">Row to Next Row (in)</label>
+                      <input type="number" step="0.1" class="form-control" id="row_to_next_row" name="row_to_next_row" placeholder="e.g., 90" required>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Add Rack Row</button>
+                <button type="button" class="btn btn-danger float-right clear-entries" data-category="rack_rows">Clear Rack Rows</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Rack Rows Entries -->
+          <div class="entries-section">
+            <div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title">Rack Rows Entries</h3>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-bordered table-striped" id="rackRowsTable">
+                    <thead>
+                      <tr>
+                        <th>Group Name</th>
+                        <th>Racks</th>
+                        <th>Group Count</th>
+                        <th>Rack to Rack (ft)</th>
+                        <th>Row to Next Row (in)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rackRowsTableBody">
+                      <!-- Entries will be added here dynamically -->
+                      {% for entry in rack_rows_entries %}
+                        {% for group_name, details in entry.items() %}
+                        <tr>
+                          <td>{{ group_name }}</td>
+                          <td>{{ details.Racks }}</td>
+                          <td>{{ details.group_count }}</td>
+                          <td>{{ details.rack_to_rack }}</td>
+                          <td>{{ details.Row_to_next_row }}</td>
+                        </tr>
+                        {% endfor %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- JSON Output Section -->
+        <div class="form-section" id="json-output-section">
+          <div class="card card-info">
+            <div class="card-header">
+              <h3 class="card-title">JSON Configuration</h3>
+            </div>
+            <div class="card-body">
+              <div class="nav nav-tabs" id="json-tab" role="tablist">
+                <a class="nav-item nav-link active" id="json-all-tab" data-toggle="tab" href="#json-all" role="tab" aria-controls="json-all" aria-selected="true">All</a>
+                <a class="nav-item nav-link" id="json-lan-leaves-tab" data-toggle="tab" href="#json-lan-leaves" role="tab" aria-controls="json-lan-leaves" aria-selected="false">LAN Leaves</a>
+                <a class="nav-item nav-link" id="json-lan-spines-tab" data-toggle="tab" href="#json-lan-spines" role="tab" aria-controls="json-lan-spines" aria-selected="false">LAN Spines</a>
+                <a class="nav-item nav-link" id="json-compute-tab" data-toggle="tab" href="#json-compute" role="tab" aria-controls="json-compute" aria-selected="false">Compute</a>
+                <a class="nav-item nav-link" id="json-cables-tab" data-toggle="tab" href="#json-cables" role="tab" aria-controls="json-cables" aria-selected="false">Cables</a>
+                <a class="nav-item nav-link" id="json-rack-rows-tab" data-toggle="tab" href="#json-rack-rows" role="tab" aria-controls="json-rack-rows" aria-selected="false">Rack Rows</a>
+              </div>
+              <div class="tab-content" id="json-tabContent">
+                <div class="tab-pane fade show active" id="json-all" role="tabpanel" aria-labelledby="json-all-tab">
+                  <pre id="jsonOutputAll" style="max-height: 500px; overflow-y: auto;"></pre>
+                </div>
+                <div class="tab-pane fade" id="json-lan-leaves" role="tabpanel" aria-labelledby="json-lan-leaves-tab">
+                  <pre id="jsonOutputLanLeaves" style="max-height: 500px; overflow-y: auto;"></pre>
+                </div>
+                <div class="tab-pane fade" id="json-lan-spines" role="tabpanel" aria-labelledby="json-lan-spines-tab">
+                  <pre id="jsonOutputLanSpines" style="max-height: 500px; overflow-y: auto;"></pre>
+                </div>
+                <div class="tab-pane fade" id="json-compute" role="tabpanel" aria-labelledby="json-compute-tab">
+                  <pre id="jsonOutputCompute" style="max-height: 500px; overflow-y: auto;"></pre>
+                </div>
+                <div class="tab-pane fade" id="json-cables" role="tabpanel" aria-labelledby="json-cables-tab">
+                  <pre id="jsonOutputCables" style="max-height: 500px; overflow-y: auto;"></pre>
+                </div>
+                <div class="tab-pane fade" id="json-rack-rows" role="tabpanel" aria-labelledby="json-rack-rows-tab">
+                  <pre id="jsonOutputRackRows" style="max-height: 500px; overflow-y: auto;"></pre>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <button type="button" id="copyJsonAll" class="btn btn-info">Copy All JSON</button>
+              <button type="button" id="clearAllEntries" class="btn btn-danger float-right">Clear All Entries</button>
+            </div>
+          </div>
+        </div>
+        
       </div><!-- /.container-fluid -->
     </section>
     <!-- /.content -->
@@ -135,9 +1046,9 @@
   
   <footer class="main-footer">
     <div class="float-right d-none d-sm-block">
-      <b>Version</b> 3.2.0
+      <b>Version</b> 1.0.0
     </div>
-    <strong>AdminLTE &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong> All rights reserved.
+    <strong>Data Center Configuration Tool</strong>
   </footer>
 
   <!-- Control Sidebar -->
@@ -162,8 +1073,208 @@
 <!-- Page specific script -->
 <script>
 $(function () {
-  // Handle form submission
-  $('#ajaxForm').on('submit', function(e) {
+  // Show LAN Leaves section by default
+  $('#lan-leaves-section').addClass('active');
+  $('#lan-leaves-link').addClass('active');
+  
+  // Navigation
+  $('#lan-leaves-link').on('click', function(e) {
+    e.preventDefault();
+    $('.form-section').removeClass('active');
+    $('#lan-leaves-section').addClass('active');
+    $('.nav-link').removeClass('active');
+    $(this).addClass('active');
+  });
+  
+  $('#lan-spines-link').on('click', function(e) {
+    e.preventDefault();
+    $('.form-section').removeClass('active');
+    $('#lan-spines-section').addClass('active');
+    $('.nav-link').removeClass('active');
+    $(this).addClass('active');
+  });
+  
+  $('#compute-nodes-link').on('click', function(e) {
+    e.preventDefault();
+    $('.form-section').removeClass('active');
+    $('#compute-nodes-section').addClass('active');
+    $('.nav-link').removeClass('active');
+    $(this).addClass('active');
+  });
+  
+  $('#storage-blocks-link').on('click', function(e) {
+    e.preventDefault();
+    $('.form-section').removeClass('active');
+    $('#storage-blocks-section').addClass('active');
+    $('.nav-link').removeClass('active');
+    $(this).addClass('active');
+  });
+  
+  $('#cables-link').on('click', function(e) {
+    e.preventDefault();
+    $('.form-section').removeClass('active');
+    $('#cables-section').addClass('active');
+    $('.nav-link').removeClass('active');
+    $(this).addClass('active');
+  });
+  
+  $('#rack-rows-link').on('click', function(e) {
+    e.preventDefault();
+    $('.form-section').removeClass('active');
+    $('#rack-rows-section').addClass('active');
+    $('.nav-link').removeClass('active');
+    $(this).addClass('active');
+  });
+  
+  $('#json-output-link').on('click', function(e) {
+    e.preventDefault();
+    $('.form-section').removeClass('active');
+    $('#json-output-section').addClass('active');
+    $('.nav-link').removeClass('active');
+    $(this).addClass('active');
+    updateAllJsonOutputs();
+  });
+  
+  // Handle LAN Leaf row click for editing
+  $('#lanLeavesTableBody').on('click', '.clickable-row', function(e) {
+    // Don't trigger if clicking on the view details button
+    if ($(e.target).hasClass('view-switch-details') || $(e.target).closest('.view-switch-details').length) {
+      return;
+    }
+    
+    var index = $(this).data('index');
+    
+    // Get LAN leaf data
+    $.ajax({
+      type: 'GET',
+      url: '/get_lan_leaf',
+      data: { index: index },
+      success: function(response) {
+        if (response.status === 'success') {
+          // Set form to edit mode
+          $('#edit_index').val(response.index);
+          $('#lanLeafSubmitBtn').text('Update LAN Leaf');
+          $('#lanLeafCancelBtn').show();
+          
+          // Fill form with data
+          var entry = response.entry;
+          var lanName = Object.keys(entry)[0];
+          var details = entry[lanName];
+          var switchDetails = details.switch[0];
+          
+          $('#lan_name').val(lanName);
+          $('#fixed_qty').val(details.fixedqty);
+          $('#lan_type').val(details.type);
+          $('#topology').val(details.topology);
+          
+          $('#switch_model').val(switchDetails.model);
+          $('#switch_ports').val(switchDetails.ports);
+          $('#switch_speed').val(switchDetails.speed);
+          $('#switch_height').val(switchDetails.height);
+          $('#switch_wattage').val(switchDetails.wattage);
+          $('#switch_weight').val(switchDetails.weight);
+          
+          if (switchDetails.uplink_count !== undefined) {
+            $('#uplink_count').val(switchDetails.uplink_count);
+          } else {
+            $('#uplink_count').val('');
+          }
+          
+          if (switchDetails.uplink_speed !== undefined) {
+            $('#uplink_speed').val(switchDetails.uplink_speed);
+          } else {
+            $('#uplink_speed').val('');
+          }
+          
+          // Scroll to form
+          $('html, body').animate({
+            scrollTop: $('#lanLeafForm').offset().top - 100
+          }, 500);
+        }
+      }
+    });
+  });
+  
+  // Handle LAN Spine row click for editing
+  $('#lanSpinesTableBody').on('click', '.clickable-row', function(e) {
+    // Don't trigger if clicking on the view details button
+    if ($(e.target).hasClass('view-switch-details') || $(e.target).closest('.view-switch-details').length) {
+      return;
+    }
+    
+    var index = $(this).data('index');
+    
+    // Get LAN spine data
+    $.ajax({
+      type: 'GET',
+      url: '/get_lan_spine',
+      data: { index: index },
+      success: function(response) {
+        if (response.status === 'success') {
+          // Set form to edit mode
+          $('#spine_edit_index').val(response.index);
+          $('#lanSpineSubmitBtn').text('Update LAN Spine');
+          $('#lanSpineCancelBtn').show();
+          
+          // Fill form with data
+          var entry = response.entry;
+          var spineName = Object.keys(entry)[0];
+          var details = entry[spineName];
+          var switchDetails = details.switch[0];
+          
+          $('#spine_name').val(spineName);
+          $('#fixed_qty_spine').val(details.fixedqty);
+          $('#spine_type').val(details.type);
+          $('#spine_topology').val(details.topology);
+          
+          $('#spine_switch_model').val(switchDetails.model);
+          $('#spine_switch_ports').val(switchDetails.ports);
+          $('#spine_switch_speed').val(switchDetails.speed);
+          $('#spine_switch_height').val(switchDetails.height);
+          $('#spine_switch_wattage').val(switchDetails.wattage);
+          $('#spine_switch_weight').val(switchDetails.weight);
+          
+          if (switchDetails.uplink_count !== undefined) {
+            $('#spine_uplink_count').val(switchDetails.uplink_count);
+          } else {
+            $('#spine_uplink_count').val('');
+          }
+          
+          if (switchDetails.uplink_speed !== undefined) {
+            $('#spine_uplink_speed').val(switchDetails.uplink_speed);
+          } else {
+            $('#spine_uplink_speed').val('');
+          }
+          
+          // Scroll to form
+          $('html, body').animate({
+            scrollTop: $('#lanSpineForm').offset().top - 100
+          }, 500);
+        }
+      }
+    });
+  });
+  
+  // Handle LAN Leaf cancel edit button
+  $('#lanLeafCancelBtn').on('click', function() {
+    // Reset form
+    $('#lanLeafForm')[0].reset();
+    $('#edit_index').val('');
+    $('#lanLeafSubmitBtn').text('Add LAN Leaf');
+    $(this).hide();
+  });
+  
+  // Handle LAN Spine cancel edit button
+  $('#lanSpineCancelBtn').on('click', function() {
+    // Reset form
+    $('#lanSpineForm')[0].reset();
+    $('#spine_edit_index').val('');
+    $('#lanSpineSubmitBtn').text('Add LAN Spine');
+    $(this).hide();
+  });
+  
+  // Handle LAN Leaf form submission
+  $('#lanLeafForm').on('submit', function(e) {
     e.preventDefault();
     
     // Get form data
@@ -172,11 +1283,11 @@ $(function () {
     // Send AJAX request
     $.ajax({
       type: 'POST',
-      url: '/submit',
+      url: '/submit_lan_leaf',
       data: formData,
       beforeSend: function() {
         // Show loading toast
-        toastr.info('Processing your request...');
+        toastr.info('Processing LAN leaf entry...');
       },
       success: function(response) {
         // Show success message
@@ -187,9 +1298,17 @@ $(function () {
           confirmButtonText: 'OK'
         });
         
-        // Display the response data
-        $('#responseData').text(JSON.stringify(response, null, 2));
-        $('#responseCard').show();
+        // Reset form
+        $('#lanLeafForm')[0].reset();
+        $('#edit_index').val('');
+        $('#lanLeafSubmitBtn').text('Add LAN Leaf');
+        $('#lanLeafCancelBtn').hide();
+        
+        // Update entries table
+        updateLanLeavesTable(response.all_entries);
+        
+        // Update JSON output
+        updateJsonOutputLanLeaves(response.all_entries);
       },
       error: function(xhr, status, error) {
         // Show error message
@@ -202,6 +1321,664 @@ $(function () {
       }
     });
   });
+  
+  // Handle LAN Spine form submission
+  $('#lanSpineForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    // Get form data
+    var formData = $(this).serialize();
+    
+    // Send AJAX request
+    $.ajax({
+      type: 'POST',
+      url: '/submit_lan_spine',
+      data: formData,
+      beforeSend: function() {
+        // Show loading toast
+        toastr.info('Processing LAN spine entry...');
+      },
+      success: function(response) {
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: response.message,
+          confirmButtonText: 'OK'
+        });
+        
+        // Reset form
+        $('#lanSpineForm')[0].reset();
+        $('#spine_edit_index').val('');
+        $('#lanSpineSubmitBtn').text('Add LAN Spine');
+        $('#lanSpineCancelBtn').hide();
+        
+        // Update entries table
+        updateLanSpinesTable(response.all_entries);
+        
+        // Update JSON output
+        updateJsonOutputLanSpines(response.all_entries);
+      },
+      error: function(xhr, status, error) {
+        // Show error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'An error occurred while submitting the form.',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  });
+  
+  // Handle Compute form submission
+  $('#computeForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    // Get form data
+    var formData = $(this).serialize();
+    
+    // Send AJAX request
+    $.ajax({
+      type: 'POST',
+      url: '/submit_compute',
+      data: formData,
+      beforeSend: function() {
+        // Show loading toast
+        toastr.info('Adding compute entry...');
+      },
+      success: function(response) {
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: response.message,
+          confirmButtonText: 'OK'
+        });
+        
+        // Reset form
+        $('#computeForm')[0].reset();
+        
+        // Update entries table
+        updateComputeTable(response.all_entries);
+        
+        // Update JSON output
+        updateJsonOutputCompute(response.all_entries);
+      },
+      error: function(xhr, status, error) {
+        // Show error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'An error occurred while submitting the form.',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  });
+  
+  // Handle Cable form submission
+  $('#cableForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    // Get form data
+    var formData = $(this).serialize();
+    
+    // Send AJAX request
+    $.ajax({
+      type: 'POST',
+      url: '/submit_cable',
+      data: formData,
+      beforeSend: function() {
+        // Show loading toast
+        toastr.info('Adding cable entry...');
+      },
+      success: function(response) {
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: response.message,
+          confirmButtonText: 'OK'
+        });
+        
+        // Reset form
+        $('#cableForm')[0].reset();
+        
+        // Update entries table
+        updateCablesTable(response.all_entries);
+        
+        // Update JSON output
+        updateJsonOutputCables(response.all_entries);
+      },
+      error: function(xhr, status, error) {
+        // Show error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'An error occurred while submitting the form.',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  });
+  
+  // Handle Rack Row form submission
+  $('#rackRowForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    // Get form data
+    var formData = $(this).serialize();
+    
+    // Send AJAX request
+    $.ajax({
+      type: 'POST',
+      url: '/submit_rack_row',
+      data: formData,
+      beforeSend: function() {
+        // Show loading toast
+        toastr.info('Adding rack row entry...');
+      },
+      success: function(response) {
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: response.message,
+          confirmButtonText: 'OK'
+        });
+        
+        // Reset form
+        $('#rackRowForm')[0].reset();
+        
+        // Update entries table
+        updateRackRowsTable(response.all_entries);
+        
+        // Update JSON output
+        updateJsonOutputRackRows(response.all_entries);
+      },
+      error: function(xhr, status, error) {
+        // Show error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'An error occurred while submitting the form.',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  });
+  
+  // Handle clear entries buttons
+  $('.clear-entries').on('click', function() {
+    var category = $(this).data('category');
+    
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, clear ' + category + '!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          type: 'POST',
+          url: '/clear_entries',
+          data: { category: category },
+          success: function(response) {
+            // Show success message
+            Swal.fire(
+              'Cleared!',
+              response.message,
+              'success'
+            );
+            
+            // Clear entries table based on category
+            if (category === 'lan_leaves' || category === 'all') {
+              $('#lanLeavesTableBody').empty();
+              updateJsonOutputLanLeaves([]);
+            }
+            if (category === 'lan_spines' || category === 'all') {
+              $('#lanSpinesTableBody').empty();
+              updateJsonOutputLanSpines([]);
+            }
+            if (category === 'compute' || category === 'all') {
+              $('#computeTableBody').empty();
+              updateJsonOutputCompute([]);
+            }
+            if (category === 'cables' || category === 'all') {
+              $('#cablesTableBody').empty();
+              updateJsonOutputCables([]);
+            }
+            if (category === 'rack_rows' || category === 'all') {
+              $('#rackRowsTableBody').empty();
+              updateJsonOutputRackRows([]);
+            }
+            
+            // Update all JSON output
+            if (category === 'all') {
+              updateAllJsonOutputs();
+            }
+          }
+        });
+      }
+    });
+  });
+  
+  // Handle clear all entries button
+  $('#clearAllEntries').on('click', function() {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, clear all!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          type: 'POST',
+          url: '/clear_entries',
+          data: { category: 'all' },
+          success: function(response) {
+            // Show success message
+            Swal.fire(
+              'Cleared!',
+              'All entries have been cleared.',
+              'success'
+            );
+            
+            // Clear all entries tables
+            $('#lanLeavesTableBody').empty();
+            $('#lanSpinesTableBody').empty();
+            $('#computeTableBody').empty();
+            $('#cablesTableBody').empty();
+            $('#rackRowsTableBody').empty();
+            
+            // Clear all JSON outputs
+            updateAllJsonOutputs();
+          }
+        });
+      }
+    });
+  });
+  
+  // Handle copy JSON button
+  $('#copyJsonAll').on('click', function() {
+    var jsonText = $('#jsonOutputAll').text();
+    navigator.clipboard.writeText(jsonText).then(function() {
+      toastr.success('JSON copied to clipboard!');
+    }, function() {
+      toastr.error('Failed to copy JSON.');
+    });
+  });
+  
+  // Function to update LAN Leaves table
+  function updateLanLeavesTable(entries) {
+    var tableBody = $('#lanLeavesTableBody');
+    tableBody.empty();
+    
+    $.each(entries, function(index, entry) {
+      for (var lanName in entry) {
+        var details = entry[lanName];
+        var modalId = 'lanLeafModal' + index;
+        
+        var row = $('<tr>').addClass('clickable-row').attr('data-index', index);
+        row.append($('<td>').text(lanName));
+        row.append($('<td>').text(details.fixedqty));
+        row.append($('<td>').text(details.type));
+        row.append($('<td>').text(details.topology));
+        
+        // Switch details button and modal
+        var switchCell = $('<td>');
+        var switchButton = $('<button>')
+          .attr('type', 'button')
+          .addClass('btn btn-info btn-sm view-switch-details')
+          .attr('data-toggle', 'modal')
+          .attr('data-target', '#' + modalId)
+          .text('View Switch Details');
+        
+        switchCell.append(switchButton);
+        
+        // Create modal
+        var modal = $('<div>')
+          .addClass('modal fade')
+          .attr('id', modalId)
+          .attr('tabindex', '-1')
+          .attr('role', 'dialog')
+          .attr('aria-labelledby', 'switchModalLabel')
+          .attr('aria-hidden', 'true');
+        
+        var modalDialog = $('<div>').addClass('modal-dialog modal-lg').attr('role', 'document');
+        var modalContent = $('<div>').addClass('modal-content');
+        
+        var modalHeader = $('<div>').addClass('modal-header');
+        modalHeader.append($('<h5>').addClass('modal-title').attr('id', 'switchModalLabel').text('Switch Details for ' + lanName));
+        modalHeader.append($('<button>').attr('type', 'button').addClass('close').attr('data-dismiss', 'modal').attr('aria-label', 'Close')
+          .append($('<span>').attr('aria-hidden', 'true').html('&times;')));
+        
+        var modalBody = $('<div>').addClass('modal-body');
+        var switchTable = $('<table>').addClass('table table-bordered');
+        var switchTableHead = $('<thead>').append($('<tr>')
+          .append($('<th>').text('Model'))
+          .append($('<th>').text('Ports'))
+          .append($('<th>').text('Speed'))
+          .append($('<th>').text('Height'))
+          .append($('<th>').text('Wattage'))
+          .append($('<th>').text('Weight'))
+          .append($('<th>').text('Uplink Count'))
+          .append($('<th>').text('Uplink Speed')));
+        
+        var switchTableBody = $('<tbody>');
+        
+        // Add switch rows
+        $.each(details.switch, function(i, switchItem) {
+          var switchRow = $('<tr>');
+          switchRow.append($('<td>').text(switchItem.model));
+          switchRow.append($('<td>').text(switchItem.ports));
+          switchRow.append($('<td>').text(switchItem.speed));
+          switchRow.append($('<td>').text(switchItem.height));
+          switchRow.append($('<td>').text(switchItem.wattage));
+          switchRow.append($('<td>').text(switchItem.weight));
+          switchRow.append($('<td>').text(switchItem.uplink_count || 'N/A'));
+          switchRow.append($('<td>').text(switchItem.uplink_speed || 'N/A'));
+          switchTableBody.append(switchRow);
+        });
+        
+        switchTable.append(switchTableHead).append(switchTableBody);
+        modalBody.append(switchTable);
+        
+        var modalFooter = $('<div>').addClass('modal-footer')
+          .append($('<button>').attr('type', 'button').addClass('btn btn-secondary').attr('data-dismiss', 'modal').text('Close'));
+        
+        modalContent.append(modalHeader).append(modalBody).append(modalFooter);
+        modalDialog.append(modalContent);
+        modal.append(modalDialog);
+        
+        $('body').append(modal);
+        row.append(switchCell);
+        
+        tableBody.append(row);
+      }
+    });
+  }
+  
+  // Function to update LAN Spines table
+  function updateLanSpinesTable(entries) {
+    var tableBody = $('#lanSpinesTableBody');
+    tableBody.empty();
+    
+    $.each(entries, function(index, entry) {
+      for (var spineName in entry) {
+        var details = entry[spineName];
+        var modalId = 'lanSpineModal' + index;
+        
+        var row = $('<tr>').addClass('clickable-row').attr('data-index', index);
+        row.append($('<td>').text(spineName));
+        row.append($('<td>').text(details.fixedqty));
+        row.append($('<td>').text(details.type));
+        row.append($('<td>').text(details.topology));
+        
+        // Switch details button and modal
+        var switchCell = $('<td>');
+        var switchButton = $('<button>')
+          .attr('type', 'button')
+          .addClass('btn btn-info btn-sm view-switch-details')
+          .attr('data-toggle', 'modal')
+          .attr('data-target', '#' + modalId)
+          .text('View Switch Details');
+        
+        switchCell.append(switchButton);
+        
+        // Create modal
+        var modal = $('<div>')
+          .addClass('modal fade')
+          .attr('id', modalId)
+          .attr('tabindex', '-1')
+          .attr('role', 'dialog')
+          .attr('aria-labelledby', 'switchModalLabel')
+          .attr('aria-hidden', 'true');
+        
+        var modalDialog = $('<div>').addClass('modal-dialog modal-lg').attr('role', 'document');
+        var modalContent = $('<div>').addClass('modal-content');
+        
+        var modalHeader = $('<div>').addClass('modal-header');
+        modalHeader.append($('<h5>').addClass('modal-title').attr('id', 'switchModalLabel').text('Switch Details for ' + spineName));
+        modalHeader.append($('<button>').attr('type', 'button').addClass('close').attr('data-dismiss', 'modal').attr('aria-label', 'Close')
+          .append($('<span>').attr('aria-hidden', 'true').html('&times;')));
+        
+        var modalBody = $('<div>').addClass('modal-body');
+        var switchTable = $('<table>').addClass('table table-bordered');
+        var switchTableHead = $('<thead>').append($('<tr>')
+          .append($('<th>').text('Model'))
+          .append($('<th>').text('Ports'))
+          .append($('<th>').text('Speed'))
+          .append($('<th>').text('Height'))
+          .append($('<th>').text('Wattage'))
+          .append($('<th>').text('Weight'))
+          .append($('<th>').text('Uplink Count'))
+          .append($('<th>').text('Uplink Speed')));
+        
+        var switchTableBody = $('<tbody>');
+        
+        // Add switch rows
+        $.each(details.switch, function(i, switchItem) {
+          var switchRow = $('<tr>');
+          switchRow.append($('<td>').text(switchItem.model));
+          switchRow.append($('<td>').text(switchItem.ports));
+          switchRow.append($('<td>').text(switchItem.speed));
+          switchRow.append($('<td>').text(switchItem.height));
+          switchRow.append($('<td>').text(switchItem.wattage));
+          switchRow.append($('<td>').text(switchItem.weight));
+          switchRow.append($('<td>').text(switchItem.uplink_count || 'N/A'));
+          switchRow.append($('<td>').text(switchItem.uplink_speed || 'N/A'));
+          switchTableBody.append(switchRow);
+        });
+        
+        switchTable.append(switchTableHead).append(switchTableBody);
+        modalBody.append(switchTable);
+        
+        var modalFooter = $('<div>').addClass('modal-footer')
+          .append($('<button>').attr('type', 'button').addClass('btn btn-secondary').attr('data-dismiss', 'modal').text('Close'));
+        
+        modalContent.append(modalHeader).append(modalBody).append(modalFooter);
+        modalDialog.append(modalContent);
+        modal.append(modalDialog);
+        
+        $('body').append(modal);
+        row.append(switchCell);
+        
+        tableBody.append(row);
+      }
+    });
+  }
+  
+  // Function to update Compute table
+  function updateComputeTable(entries) {
+    var tableBody = $('#computeTableBody');
+    tableBody.empty();
+    
+    $.each(entries, function(index, entry) {
+      for (var computeName in entry) {
+        var details = entry[computeName];
+        var modalId = 'lanModal' + index;
+        
+        var row = $('<tr>');
+        row.append($('<td>').text(computeName));
+        row.append($('<td>').text(details.count));
+        row.append($('<td>').text(details.wattage));
+        row.append($('<td>').text(details.height));
+        row.append($('<td>').text(details.weight));
+        
+        // LAN details button and modal
+        var lanCell = $('<td>');
+        var lanButton = $('<button>')
+          .attr('type', 'button')
+          .addClass('btn btn-info btn-sm')
+          .attr('data-toggle', 'modal')
+          .attr('data-target', '#' + modalId)
+          .text('View LAN Details');
+        
+        lanCell.append(lanButton);
+        
+        // Create modal
+        var modal = $('<div>')
+          .addClass('modal fade')
+          .attr('id', modalId)
+          .attr('tabindex', '-1')
+          .attr('role', 'dialog')
+          .attr('aria-labelledby', 'lanModalLabel')
+          .attr('aria-hidden', 'true');
+        
+        var modalDialog = $('<div>').addClass('modal-dialog modal-lg').attr('role', 'document');
+        var modalContent = $('<div>').addClass('modal-content');
+        
+        var modalHeader = $('<div>').addClass('modal-header');
+        modalHeader.append($('<h5>').addClass('modal-title').attr('id', 'lanModalLabel').text('LAN Details for ' + computeName));
+        modalHeader.append($('<button>').attr('type', 'button').addClass('close').attr('data-dismiss', 'modal').attr('aria-label', 'Close')
+          .append($('<span>').attr('aria-hidden', 'true').html('&times;')));
+        
+        var modalBody = $('<div>').addClass('modal-body');
+        var lanTable = $('<table>').addClass('table table-bordered');
+        var lanTableHead = $('<thead>').append($('<tr>')
+          .append($('<th>').text('LAN'))
+          .append($('<th>').text('Count'))
+          .append($('<th>').text('Speed')));
+        
+        var lanTableBody = $('<tbody>');
+        
+        // Add LAN rows
+        for (var i = 1; i <= 6; i++) {
+          var lanName = 'LAN_' + i;
+          if (details[lanName]) {
+            var lanRow = $('<tr>');
+            lanRow.append($('<td>').text(lanName));
+            lanRow.append($('<td>').text(details[lanName].count));
+            lanRow.append($('<td>').text(details[lanName].speed));
+            lanTableBody.append(lanRow);
+          }
+        }
+        
+        lanTable.append(lanTableHead).append(lanTableBody);
+        modalBody.append(lanTable);
+        
+        var modalFooter = $('<div>').addClass('modal-footer')
+          .append($('<button>').attr('type', 'button').addClass('btn btn-secondary').attr('data-dismiss', 'modal').text('Close'));
+        
+        modalContent.append(modalHeader).append(modalBody).append(modalFooter);
+        modalDialog.append(modalContent);
+        modal.append(modalDialog);
+        
+        $('body').append(modal);
+        row.append(lanCell);
+        
+        tableBody.append(row);
+      }
+    });
+  }
+  
+  // Function to update Cables table
+  function updateCablesTable(entries) {
+    var tableBody = $('#cablesTableBody');
+    tableBody.empty();
+    
+    $.each(entries, function(index, entry) {
+      for (var switchModel in entry) {
+        var cables = entry[switchModel];
+        
+        $.each(cables, function(i, cable) {
+          var row = $('<tr>');
+          row.append($('<td>').text(switchModel));
+          row.append($('<td>').text(cable.model));
+          row.append($('<td>').text(cable.server_port_speed));
+          row.append($('<td>').text(cable.split));
+          row.append($('<td>').text(cable.length));
+          
+          tableBody.append(row);
+        });
+      }
+    });
+  }
+  
+  // Function to update Rack Rows table
+  function updateRackRowsTable(entries) {
+    var tableBody = $('#rackRowsTableBody');
+    tableBody.empty();
+    
+    $.each(entries, function(index, entry) {
+      for (var groupName in entry) {
+        var details = entry[groupName];
+        
+        var row = $('<tr>');
+        row.append($('<td>').text(groupName));
+        row.append($('<td>').text(details.Racks));
+        row.append($('<td>').text(details.group_count));
+        row.append($('<td>').text(details.rack_to_rack));
+        row.append($('<td>').text(details.Row_to_next_row));
+        
+        tableBody.append(row);
+      }
+    });
+  }
+  
+  // Function to update JSON outputs
+  function updateJsonOutputLanLeaves(entries) {
+    $('#jsonOutputLanLeaves').text(JSON.stringify(entries, null, 2));
+    updateAllJsonOutputs();
+  }
+  
+  function updateJsonOutputLanSpines(entries) {
+    $('#jsonOutputLanSpines').text(JSON.stringify(entries, null, 2));
+    updateAllJsonOutputs();
+  }
+  
+  function updateJsonOutputCompute(entries) {
+    $('#jsonOutputCompute').text(JSON.stringify(entries, null, 2));
+    updateAllJsonOutputs();
+  }
+  
+  function updateJsonOutputCables(entries) {
+    $('#jsonOutputCables').text(JSON.stringify(entries, null, 2));
+    updateAllJsonOutputs();
+  }
+  
+  function updateJsonOutputRackRows(entries) {
+    $('#jsonOutputRackRows').text(JSON.stringify(entries, null, 2));
+    updateAllJsonOutputs();
+  }
+  
+  function updateAllJsonOutputs() {
+    $.ajax({
+      type: 'GET',
+      url: '/get_all_entries',
+      success: function(response) {
+        $('#jsonOutputAll').text(JSON.stringify(response, null, 2));
+        
+        // Update individual JSON outputs if they're empty
+        if ($('#jsonOutputLanLeaves').text() === '') {
+          $('#jsonOutputLanLeaves').text(JSON.stringify(response.lan_leaves, null, 2));
+        }
+        if ($('#jsonOutputLanSpines').text() === '') {
+          $('#jsonOutputLanSpines').text(JSON.stringify(response.lan_spines, null, 2));
+        }
+        if ($('#jsonOutputCompute').text() === '') {
+          $('#jsonOutputCompute').text(JSON.stringify(response.compute_nodes, null, 2));
+        }
+        if ($('#jsonOutputCables').text() === '') {
+          $('#jsonOutputCables').text(JSON.stringify(response.cables, null, 2));
+        }
+        if ($('#jsonOutputRackRows').text() === '') {
+          $('#jsonOutputRackRows').text(JSON.stringify(response.rack_rows, null, 2));
+        }
+      }
+    });
+  }
+  
+  // Initialize JSON outputs
+  updateAllJsonOutputs();
 });
 </script>
 </body>
