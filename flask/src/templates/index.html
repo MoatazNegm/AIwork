@@ -8,16 +8,16 @@
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/fontawesome-free/css/all.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/fontawesome-free/css/all.min.css") }}">
   <!-- Theme style -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/dist/css/adminlte.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/dist/css/adminlte.min.css") }}">
   <!-- SweetAlert2 -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css") }}">
   <!-- Toastr -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/toastr/toastr.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/toastr/toastr.min.css") }}">
   <!-- Select2 -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/select2/css/select2.min.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/select2/css/select2.min.css") }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css") }}">
   <style>
     .clickable-row {
       cursor: pointer;
@@ -84,7 +84,7 @@
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="#" class="brand-link">
-      <img src="{{ url_for('static', filename='adminlte/dist/img/AdminLTELogo.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+      <img src="{{ url_for("static", filename="adminlte/dist/img/AdminLTELogo.png") }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
       <span class="brand-text font-weight-light">Data Center Config</span>
     </a>
 
@@ -390,22 +390,22 @@
                       <tbody id="lanLeavesTableBody">
                         {% for leaf in lan_leaves %}
                           {% for lan_name, details in leaf.items() %}
-                            <tr class="clickable-row" data-index="{{ loop.parent.index0 }}">
+                            <tr class="clickable-row" data-index="{{ loop.parent.loop.index0 }}">
                               <td>{{ lan_name }}</td>
                               <td>{{ details.role }}</td>
                               <td>{{ details.fixedqty }}</td>
                               <td>{{ details.type }}</td>
                               <td>{{ details.topology }}</td>
                               <td>
-                                {{ details.switches|join(', ') }}
+                                {{ details.switches|join(", ") }}
                                 <button class="btn btn-xs btn-info view-switches-btn" 
-                                        data-switches="{{ details.switches|join(', ') }}"
+                                        data-switches="{{ details.switches|join(", ") }}"
                                         data-lan="{{ lan_name }}">
                                   View Switches
                                 </button>
                               </td>
                               <td>
-                                <button class="btn btn-sm btn-info edit-lan-leaf-btn" data-index="{{ loop.parent.index0 }}">Edit</button>
+                                <button class="btn btn-sm btn-info edit-lan-leaf-btn" data-index="{{ loop.parent.loop.index0 }}">Edit</button>
                               </td>
                             </tr>
                           {% endfor %}
@@ -518,22 +518,22 @@
                       <tbody id="lanSpinesTableBody">
                         {% for spine in lan_spines %}
                           {% for spine_name, details in spine.items() %}
-                            <tr class="clickable-row" data-index="{{ loop.parent.index0 }}">
+                            <tr class="clickable-row" data-index="{{ loop.parent.loop.index0 }}">
                               <td>{{ spine_name }}</td>
                               <td>{{ details.role }}</td>
                               <td>{{ details.fixedqty }}</td>
                               <td>{{ details.type }}</td>
                               <td>{{ details.topology }}</td>
                               <td>
-                                {{ details.switches|join(', ') }}
+                                {{ details.switches|join(", ") }}
                                 <button class="btn btn-xs btn-info view-switches-btn" 
-                                        data-switches="{{ details.switches|join(', ') }}"
+                                        data-switches="{{ details.switches|join(", ") }}"
                                         data-lan="{{ spine_name }}">
                                   View Switches
                                 </button>
                               </td>
                               <td>
-                                <button class="btn btn-sm btn-info edit-lan-spine-btn" data-index="{{ loop.parent.index0 }}">Edit</button>
+                                <button class="btn btn-sm btn-info edit-lan-spine-btn" data-index="{{ loop.parent.loop.index0 }}">Edit</button>
                               </td>
                             </tr>
                           {% endfor %}
@@ -602,7 +602,7 @@
                                 <label for="lan_{{ i }}_count">
                                   LAN_{{ i }} 
                                   <span class="badge badge-secondary lan-role-badge" id="lan_{{ i }}_role_badge">
-                                    {{ lan_roles.get('LAN_' ~ i, '') }}
+                                    {{ lan_roles.get("LAN_" ~ i, "") }}
                                   </span>
                                 </label>
                                 <div class="row">
@@ -1135,66 +1135,66 @@
 </div>
 
 <!-- jQuery -->
-<script src="{{ url_for('static', filename='adminlte/plugins/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/jquery/jquery.min.js") }}"></script>
 <!-- Bootstrap 4 -->
-<script src="{{ url_for('static', filename='adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js") }}"></script>
 <!-- AdminLTE App -->
-<script src="{{ url_for('static', filename='adminlte/dist/js/adminlte.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/dist/js/adminlte.min.js") }}"></script>
 <!-- SweetAlert2 -->
-<script src="{{ url_for('static', filename='adminlte/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/sweetalert2/sweetalert2.min.js") }}"></script>
 <!-- Toastr -->
-<script src="{{ url_for('static', filename='adminlte/plugins/toastr/toastr.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/toastr/toastr.min.js") }}"></script>
 <!-- Select2 -->
-<script src="{{ url_for('static', filename='adminlte/plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/select2/js/select2.full.min.js") }}"></script>
 
 <script>
   $(function () {
     // Initialize Select2 Elements
-    $('.select2').select2({
-      theme: 'bootstrap4'
+    $(".select2").select2({
+      theme: "bootstrap4"
     });
     
     // Set active tab from URL hash or default to first tab
-    let activeTab = window.location.hash || '#switches';
-    $('a[href="' + activeTab + '"]').tab('show');
+    let activeTab = window.location.hash || "#switches";
+    $("a[href=\"" + activeTab + "\"]").tab("show");
     
     // Update URL hash when tab changes
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    $("a[data-toggle=\"tab\"]").on("shown.bs.tab", function (e) {
       window.location.hash = e.target.hash;
       
       // Refresh JSON display when switching to JSON tab
-      if (e.target.hash === '#json_output') {
+      if (e.target.hash === "#json_output") {
         refreshJsonDisplay();
       }
     });
     
     // Project name editing
-    $('#projectTitle').on('click', function() {
+    $("#projectTitle").on("click", function() {
       const currentTitle = $(this).text();
       $(this).html(`<input type="text" class="editable-title-input" value="${currentTitle}">`);
-      $('.editable-title-input').focus();
+      $(".editable-title-input").focus();
       
-      $('.editable-title-input').on('blur keypress', function(e) {
-        if (e.type === 'blur' || e.which === 13) {
+      $(".editable-title-input").on("blur keypress", function(e) {
+        if (e.type === "blur" || e.which === 13) {
           const newTitle = $(this).val();
-          $('#projectTitle').text(newTitle);
+          $("#projectTitle").text(newTitle);
           
           // Send AJAX request to update project name
           $.ajax({
-            url: '/update_project_name',
-            type: 'POST',
+            url: "/update_project_name",
+            type: "POST",
             data: {
               project_name: newTitle
             },
             success: function(response) {
-              if (response.status === 'success') {
+              if (response.status === "success") {
                 toastr.success(response.message);
               } else {
                 toastr.error(response.message);
               }
             },
             error: function() {
-              toastr.error('Failed to update project name');
+              toastr.error("Failed to update project name");
             }
           });
           
@@ -1204,22 +1204,22 @@
     });
     
     // Switch Form Submission
-    $('#switchForm').on('submit', function(e) {
+    $("#switchForm").on("submit", function(e) {
       e.preventDefault();
       
       $.ajax({
-        url: '/submit_switch',
-        type: 'POST',
+        url: "/submit_switch",
+        type: "POST",
         data: $(this).serialize(),
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             toastr.success(response.message);
             
             // Reset form and edit state
-            $('#switchForm')[0].reset();
-            $('#switchEditIndex').val('');
-            $('#submitSwitchBtn').text('Add Switch');
-            $('#cancelSwitchEditBtn').addClass('d-none');
+            $("#switchForm")[0].reset();
+            $("#switchEditIndex").val("");
+            $("#submitSwitchBtn").text("Add Switch");
+            $("#cancelSwitchEditBtn").addClass("d-none");
             
             // Update switches table
             updateSwitchesTable(response.all_entries);
@@ -1234,32 +1234,32 @@
           }
         },
         error: function() {
-          toastr.error('Failed to submit switch');
+          toastr.error("Failed to submit switch");
         }
       });
     });
     
     // LAN Leaf Form Submission
-    $('#lanLeafForm').on('submit', function(e) {
+    $("#lanLeafForm").on("submit", function(e) {
       e.preventDefault();
       
       // Set the hidden lan_name field based on the lan_number
-      const lanNumber = $('#lanNumber').val();
-      $('#lanName').val(`LAN_${lanNumber}`);
+      const lanNumber = $("#lanNumber").val();
+      $("#lanName").val(`LAN_${lanNumber}`);
       
       $.ajax({
-        url: '/submit_lan_leaf',
-        type: 'POST',
+        url: "/submit_lan_leaf",
+        type: "POST",
         data: $(this).serialize(),
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             toastr.success(response.message);
             
             // Reset form and edit state
-            $('#lanLeafForm')[0].reset();
-            $('#lanLeafEditIndex').val('');
-            $('#submitLanLeafBtn').text('Add LAN Leaf');
-            $('#cancelLanLeafEditBtn').addClass('d-none');
+            $("#lanLeafForm")[0].reset();
+            $("#lanLeafEditIndex").val("");
+            $("#submitLanLeafBtn").text("Add LAN Leaf");
+            $("#cancelLanLeafEditBtn").addClass("d-none");
             
             // Update LAN leaves table
             updateLanLeavesTable(response.all_entries);
@@ -1277,32 +1277,32 @@
           }
         },
         error: function() {
-          toastr.error('Failed to submit LAN leaf');
+          toastr.error("Failed to submit LAN leaf");
         }
       });
     });
     
     // LAN Spine Form Submission
-    $('#lanSpineForm').on('submit', function(e) {
+    $("#lanSpineForm").on("submit", function(e) {
       e.preventDefault();
       
       // Set the hidden spine_name field based on the spine_number
-      const spineNumber = $('#spineNumber').val();
-      $('#spineName').val(`LAN_${spineNumber}_spines`);
+      const spineNumber = $("#spineNumber").val();
+      $("#spineName").val(`LAN_${spineNumber}_spines`);
       
       $.ajax({
-        url: '/submit_lan_spine',
-        type: 'POST',
+        url: "/submit_lan_spine",
+        type: "POST",
         data: $(this).serialize(),
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             toastr.success(response.message);
             
             // Reset form and edit state
-            $('#lanSpineForm')[0].reset();
-            $('#lanSpineEditIndex').val('');
-            $('#submitLanSpineBtn').text('Add LAN Spine');
-            $('#cancelLanSpineEditBtn').addClass('d-none');
+            $("#lanSpineForm")[0].reset();
+            $("#lanSpineEditIndex").val("");
+            $("#submitLanSpineBtn").text("Add LAN Spine");
+            $("#cancelLanSpineEditBtn").addClass("d-none");
             
             // Update LAN spines table
             updateLanSpinesTable(response.all_entries);
@@ -1317,25 +1317,25 @@
           }
         },
         error: function() {
-          toastr.error('Failed to submit LAN spine');
+          toastr.error("Failed to submit LAN spine");
         }
       });
     });
     
     // Compute Form Submission
-    $('#computeForm').on('submit', function(e) {
+    $("#computeForm").on("submit", function(e) {
       e.preventDefault();
       
       $.ajax({
-        url: '/submit_compute',
-        type: 'POST',
+        url: "/submit_compute",
+        type: "POST",
         data: $(this).serialize(),
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             toastr.success(response.message);
             
             // Reset form
-            $('#computeForm')[0].reset();
+            $("#computeForm")[0].reset();
             
             // Update compute table
             updateComputeTable(response.all_entries);
@@ -1347,23 +1347,23 @@
           }
         },
         error: function() {
-          toastr.error('Failed to submit compute node');
+          toastr.error("Failed to submit compute node");
         }
       });
     });
     
     // Storage Form Submission
-    $('#storageForm').on('submit', function(e) {
+    $("#storageForm").on("submit", function(e) {
       e.preventDefault();
       
       const formData = {
-        storage_name: $('#storageName').val(),
-        count: $('#storageCount').val(),
-        wattage: $('#storageWattage').val(),
-        height: $('#storageHeight').val(),
-        weight: $('#storageWeight').val(),
-        capacity: $('#storageCapacity').val(),
-        type: $('#storageType').val()
+        storage_name: $("#storageName").val(),
+        count: $("#storageCount").val(),
+        wattage: $("#storageWattage").val(),
+        height: $("#storageHeight").val(),
+        weight: $("#storageWeight").val(),
+        capacity: $("#storageCapacity").val(),
+        type: $("#storageType").val()
       };
       
       // Create storage entry
@@ -1379,36 +1379,36 @@
       };
       
       // Add to storage entries
-      const storageEntries = JSON.parse($('#storageJsonDisplay').text() || '[]');
+      const storageEntries = JSON.parse($("#storageJsonDisplay").text() || "[]");
       storageEntries.push(entry);
       
       // Update storage table
       updateStorageTable(storageEntries);
       
       // Reset form
-      $('#storageForm')[0].reset();
+      $("#storageForm")[0].reset();
       
       // Show success message
-      toastr.success('Storage entry added successfully');
+      toastr.success("Storage entry added successfully");
       
       // Refresh JSON display
       refreshJsonDisplay();
     });
     
     // Cable Form Submission
-    $('#cableForm').on('submit', function(e) {
+    $("#cableForm").on("submit", function(e) {
       e.preventDefault();
       
       $.ajax({
-        url: '/submit_cable',
-        type: 'POST',
+        url: "/submit_cable",
+        type: "POST",
         data: $(this).serialize(),
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             toastr.success(response.message);
             
             // Reset form
-            $('#cableForm')[0].reset();
+            $("#cableForm")[0].reset();
             
             // Update cables table
             updateCablesTable(response.all_entries);
@@ -1420,26 +1420,26 @@
           }
         },
         error: function() {
-          toastr.error('Failed to submit cable');
+          toastr.error("Failed to submit cable");
         }
       });
     });
     
     // Rack Row Form Submission
-    $('#rackRowForm').on('submit', function(e) {
+    $("#rackRowForm").on("submit", function(e) {
       e.preventDefault();
       
       $.ajax({
-        url: '/submit_rack_row',
-        type: 'POST',
+        url: "/submit_rack_row",
+        type: "POST",
         data: $(this).serialize(),
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             toastr.success(response.message);
             
             // Reset form
-            $('#rackRowForm')[0].reset();
-            $('#groupName').val('Group');
+            $("#rackRowForm")[0].reset();
+            $("#groupName").val("Group");
             
             // Update rack rows table
             updateRackRowsTable(response.all_entries);
@@ -1451,204 +1451,204 @@
           }
         },
         error: function() {
-          toastr.error('Failed to submit rack row');
+          toastr.error("Failed to submit rack row");
         }
       });
     });
     
     // Edit Switch
-    $(document).on('click', '.edit-switch-btn', function(e) {
+    $(document).on("click", ".edit-switch-btn", function(e) {
       e.stopPropagation();
-      const index = $(this).data('index');
+      const index = $(this).data("index");
       
       $.ajax({
-        url: '/get_switch',
-        type: 'GET',
+        url: "/get_switch",
+        type: "GET",
         data: { index: index },
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             const entry = response.entry;
             
             // Fill form with entry data
-            $('#switchModel').val(entry.model);
-            $('#switchPorts').val(entry.ports);
-            $('#switchSpeed').val(entry.speed);
-            $('#switchHeight').val(entry.height);
-            $('#switchWattage').val(entry.wattage);
-            $('#switchWeight').val(entry.weight);
+            $("#switchModel").val(entry.model);
+            $("#switchPorts").val(entry.ports);
+            $("#switchSpeed").val(entry.speed);
+            $("#switchHeight").val(entry.height);
+            $("#switchWattage").val(entry.wattage);
+            $("#switchWeight").val(entry.weight);
             
             if (entry.uplink_count !== undefined && entry.uplink_speed !== undefined) {
-              $('#uplinkCount').val(entry.uplink_count);
-              $('#uplinkSpeed').val(entry.uplink_speed);
+              $("#uplinkCount").val(entry.uplink_count);
+              $("#uplinkSpeed").val(entry.uplink_speed);
             } else {
-              $('#uplinkCount').val('');
-              $('#uplinkSpeed').val('');
+              $("#uplinkCount").val("");
+              $("#uplinkSpeed").val("");
             }
             
             // Set edit index and update button text
-            $('#switchEditIndex').val(index);
-            $('#submitSwitchBtn').text('Update Switch');
-            $('#cancelSwitchEditBtn').removeClass('d-none');
+            $("#switchEditIndex").val(index);
+            $("#submitSwitchBtn").text("Update Switch");
+            $("#cancelSwitchEditBtn").removeClass("d-none");
             
             // Scroll to form
-            $('html, body').animate({
-              scrollTop: $('#switchForm').offset().top - 100
+            $("html, body").animate({
+              scrollTop: $("#switchForm").offset().top - 100
             }, 200);
           } else {
             toastr.error(response.message);
           }
         },
         error: function() {
-          toastr.error('Failed to get switch data');
+          toastr.error("Failed to get switch data");
         }
       });
     });
     
     // Edit LAN Leaf
-    $(document).on('click', '.edit-lan-leaf-btn, .clickable-row', function(e) {
+    $(document).on("click", ".edit-lan-leaf-btn, #lanLeavesTableBody .clickable-row", function(e) {
       e.stopPropagation();
-      const index = $(this).data('index');
+      const index = $(this).data("index");
       
-      // Only process if we're in the LAN leaves tab
-      if (!$(this).closest('#lan_leaves').length) {
+      // Only process if we"re in the LAN leaves tab
+      if (!$(this).closest("#lan_leaves").length) {
         return;
       }
       
       $.ajax({
-        url: '/get_lan_leaf',
-        type: 'GET',
+        url: "/get_lan_leaf",
+        type: "GET",
         data: { index: index },
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             const entry = response.entry;
             const lanName = Object.keys(entry)[0];
             const details = entry[lanName];
             
             // Extract LAN number
-            const lanNumber = lanName.split('_')[1];
+            const lanNumber = lanName.split("_")[1];
             
             // Fill form with entry data
-            $('#lanNumber').val(lanNumber);
-            $('#lanName').val(lanName);
-            $('#lanRole').val(details.role);
-            $('#fixedQty').val(details.fixedqty);
-            $('#lanType').val(details.type);
-            $('#topology').val(details.topology);
+            $("#lanNumber").val(lanNumber);
+            $("#lanName").val(lanName);
+            $("#lanRole").val(details.role);
+            $("#fixedQty").val(details.fixedqty);
+            $("#lanType").val(details.type);
+            $("#topology").val(details.topology);
             
             // Clear and set selected switches
-            $('#selectedSwitches').val(null).trigger('change');
-            $('#selectedSwitches').val(details.switches).trigger('change');
+            $("#selectedSwitches").val(null).trigger("change");
+            $("#selectedSwitches").val(details.switches).trigger("change");
             
             // Set edit index and update button text
-            $('#lanLeafEditIndex').val(index);
-            $('#submitLanLeafBtn').text('Update LAN Leaf');
-            $('#cancelLanLeafEditBtn').removeClass('d-none');
+            $("#lanLeafEditIndex").val(index);
+            $("#submitLanLeafBtn").text("Update LAN Leaf");
+            $("#cancelLanLeafEditBtn").removeClass("d-none");
             
             // Scroll to form
-            $('html, body').animate({
-              scrollTop: $('#lanLeafForm').offset().top - 100
+            $("html, body").animate({
+              scrollTop: $("#lanLeafForm").offset().top - 100
             }, 200);
           } else {
             toastr.error(response.message);
           }
         },
         error: function() {
-          toastr.error('Failed to get LAN leaf data');
+          toastr.error("Failed to get LAN leaf data");
         }
       });
     });
     
     // Edit LAN Spine
-    $(document).on('click', '.edit-lan-spine-btn, .clickable-row', function(e) {
+    $(document).on("click", ".edit-lan-spine-btn, #lanSpinesTableBody .clickable-row", function(e) {
       e.stopPropagation();
-      const index = $(this).data('index');
+      const index = $(this).data("index");
       
-      // Only process if we're in the LAN spines tab
-      if (!$(this).closest('#lan_spines').length) {
+      // Only process if we"re in the LAN spines tab
+      if (!$(this).closest("#lan_spines").length) {
         return;
       }
       
       $.ajax({
-        url: '/get_lan_spine',
-        type: 'GET',
+        url: "/get_lan_spine",
+        type: "GET",
         data: { index: index },
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             const entry = response.entry;
             const spineName = Object.keys(entry)[0];
             const details = entry[spineName];
             
             // Extract LAN number
-            const spineNumber = spineName.split('_')[1];
+            const spineNumber = spineName.split("_")[1];
             
             // Fill form with entry data
-            $('#spineNumber').val(spineNumber);
-            $('#spineName').val(spineName);
-            $('#spineRole').val(details.role);
-            $('#spineFixedQty').val(details.fixedqty);
-            $('#spineType').val(details.type);
-            $('#spineTopology').val(details.topology);
+            $("#spineNumber").val(spineNumber);
+            $("#spineName").val(spineName);
+            $("#spineRole").val(details.role);
+            $("#spineFixedQty").val(details.fixedqty);
+            $("#spineType").val(details.type);
+            $("#spineTopology").val(details.topology);
             
             // Clear and set selected switches
-            $('#selectedSwitchesSpine').val(null).trigger('change');
-            $('#selectedSwitchesSpine').val(details.switches).trigger('change');
+            $("#selectedSwitchesSpine").val(null).trigger("change");
+            $("#selectedSwitchesSpine").val(details.switches).trigger("change");
             
             // Set edit index and update button text
-            $('#lanSpineEditIndex').val(index);
-            $('#submitLanSpineBtn').text('Update LAN Spine');
-            $('#cancelLanSpineEditBtn').removeClass('d-none');
+            $("#lanSpineEditIndex").val(index);
+            $("#submitLanSpineBtn").text("Update LAN Spine");
+            $("#cancelLanSpineEditBtn").removeClass("d-none");
             
             // Scroll to form
-            $('html, body').animate({
-              scrollTop: $('#lanSpineForm').offset().top - 100
+            $("html, body").animate({
+              scrollTop: $("#lanSpineForm").offset().top - 100
             }, 200);
           } else {
             toastr.error(response.message);
           }
         },
         error: function() {
-          toastr.error('Failed to get LAN spine data');
+          toastr.error("Failed to get LAN spine data");
         }
       });
     });
     
     // Cancel Switch Edit
-    $('#cancelSwitchEditBtn').on('click', function() {
-      $('#switchForm')[0].reset();
-      $('#switchEditIndex').val('');
-      $('#submitSwitchBtn').text('Add Switch');
-      $(this).addClass('d-none');
+    $("#cancelSwitchEditBtn").on("click", function() {
+      $("#switchForm")[0].reset();
+      $("#switchEditIndex").val("");
+      $("#submitSwitchBtn").text("Add Switch");
+      $(this).addClass("d-none");
     });
     
     // Cancel LAN Leaf Edit
-    $('#cancelLanLeafEditBtn').on('click', function() {
-      $('#lanLeafForm')[0].reset();
-      $('#lanLeafEditIndex').val('');
-      $('#submitLanLeafBtn').text('Add LAN Leaf');
-      $(this).addClass('d-none');
+    $("#cancelLanLeafEditBtn").on("click", function() {
+      $("#lanLeafForm")[0].reset();
+      $("#lanLeafEditIndex").val("");
+      $("#submitLanLeafBtn").text("Add LAN Leaf");
+      $(this).addClass("d-none");
       
       // Get next LAN number
       getNextLanNumber();
     });
     
     // Cancel LAN Spine Edit
-    $('#cancelLanSpineEditBtn').on('click', function() {
-      $('#lanSpineForm')[0].reset();
-      $('#lanSpineEditIndex').val('');
-      $('#submitLanSpineBtn').text('Add LAN Spine');
-      $(this).addClass('d-none');
+    $("#cancelLanSpineEditBtn").on("click", function() {
+      $("#lanSpineForm")[0].reset();
+      $("#lanSpineEditIndex").val("");
+      $("#submitLanSpineBtn").text("Add LAN Spine");
+      $(this).addClass("d-none");
       
       // Get next LAN number
       getNextLanNumber();
     });
     
     // View LAN Details
-    $(document).on('click', '.view-lan-details-btn', function() {
-      const computeName = $(this).data('compute');
-      const details = $(this).data('details');
+    $(document).on("click", ".view-lan-details-btn", function() {
+      const computeName = $(this).data("compute");
+      const details = $(this).data("details");
       
       // Clear table
-      $('#lanDetailsTableBody').empty();
+      $("#lanDetailsTableBody").empty();
       
       // Add rows for each LAN
       for (let i = 1; i <= 6; i++) {
@@ -1657,7 +1657,7 @@
           const lanData = details[lanKey];
           const role = $(`#lan_${i}_role_badge`).text().trim();
           
-          $('#lanDetailsTableBody').append(`
+          $("#lanDetailsTableBody").append(`
             <tr>
               <td>${lanKey}</td>
               <td>${role}</td>
@@ -1669,24 +1669,24 @@
       }
       
       // Set modal title
-      $('.modal-title').text(`LAN Details for ${computeName}`);
+      $(".modal-title").text(`LAN Details for ${computeName}`);
       
       // Show modal
-      $('#lanDetailsModal').modal('show');
+      $("#lanDetailsModal").modal("show");
     });
     
     // View Switch Details
-    $(document).on('click', '.view-switches-btn', function(e) {
+    $(document).on("click", ".view-switches-btn", function(e) {
       e.stopPropagation();
-      const switches = $(this).data('switches').split(', ');
-      const lanName = $(this).data('lan');
+      const switches = $(this).data("switches").split(", ");
+      const lanName = $(this).data("lan");
       
       // Clear table
-      $('#switchDetailsTableBody').empty();
+      $("#switchDetailsTableBody").empty();
       
       // Add rows for each switch
       switches.forEach(switchModel => {
-        $('#switchDetailsTableBody').append(`
+        $("#switchDetailsTableBody").append(`
           <tr>
             <td>${switchModel}</td>
           </tr>
@@ -1694,158 +1694,158 @@
       });
       
       // Set LAN name
-      $('#switchDetailsLanName').text(`Switches for ${lanName}`);
+      $("#switchDetailsLanName").text(`Switches for ${lanName}`);
       
       // Show modal
-      $('#switchDetailsModal').modal('show');
+      $("#switchDetailsModal").modal("show");
     });
     
     // Clear buttons
-    $('#clearSwitchesBtn').on('click', function() {
+    $("#clearSwitchesBtn").on("click", function() {
       Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: "This will clear all switches. This action cannot be undone!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, clear all!'
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, clear all!"
       }).then((result) => {
         if (result.isConfirmed) {
-          clearEntries('switches');
+          clearEntries("switches");
         }
       });
     });
     
-    $('#clearLanLeavesBtn').on('click', function() {
+    $("#clearLanLeavesBtn").on("click", function() {
       Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: "This will clear all LAN leaves. This action cannot be undone!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, clear all!'
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, clear all!"
       }).then((result) => {
         if (result.isConfirmed) {
-          clearEntries('lan_leaves');
+          clearEntries("lan_leaves");
         }
       });
     });
     
-    $('#clearLanSpinesBtn').on('click', function() {
+    $("#clearLanSpinesBtn").on("click", function() {
       Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: "This will clear all LAN spines. This action cannot be undone!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, clear all!'
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, clear all!"
       }).then((result) => {
         if (result.isConfirmed) {
-          clearEntries('lan_spines');
+          clearEntries("lan_spines");
         }
       });
     });
     
-    $('#clearComputeBtn').on('click', function() {
+    $("#clearComputeBtn").on("click", function() {
       Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: "This will clear all compute nodes. This action cannot be undone!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, clear all!'
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, clear all!"
       }).then((result) => {
         if (result.isConfirmed) {
-          clearEntries('compute');
+          clearEntries("compute");
         }
       });
     });
     
-    $('#clearStorageBtn').on('click', function() {
+    $("#clearStorageBtn").on("click", function() {
       Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: "This will clear all storage blocks. This action cannot be undone!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, clear all!'
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, clear all!"
       }).then((result) => {
         if (result.isConfirmed) {
-          clearEntries('storage');
+          clearEntries("storage");
         }
       });
     });
     
-    $('#clearCablesBtn').on('click', function() {
+    $("#clearCablesBtn").on("click", function() {
       Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: "This will clear all cables. This action cannot be undone!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, clear all!'
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, clear all!"
       }).then((result) => {
         if (result.isConfirmed) {
-          clearEntries('cables');
+          clearEntries("cables");
         }
       });
     });
     
-    $('#clearRackRowsBtn').on('click', function() {
+    $("#clearRackRowsBtn").on("click", function() {
       Swal.fire({
-        title: 'Are you sure?',
+        title: "Are you sure?",
         text: "This will clear all rack rows. This action cannot be undone!",
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, clear all!'
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, clear all!"
       }).then((result) => {
         if (result.isConfirmed) {
-          clearEntries('rack_rows');
+          clearEntries("rack_rows");
         }
       });
     });
     
     // Copy JSON button
-    $('#copyJsonBtn').on('click', function() {
-      const jsonText = $('#allJsonDisplay').text();
+    $("#copyJsonBtn").on("click", function() {
+      const jsonText = $("#allJsonDisplay").text();
       
       // Create temporary textarea element
-      const textarea = document.createElement('textarea');
+      const textarea = document.createElement("textarea");
       textarea.value = jsonText;
       document.body.appendChild(textarea);
       
       // Select and copy text
       textarea.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
       
       // Remove temporary element
       document.body.removeChild(textarea);
       
       // Show success message
-      toastr.success('JSON copied to clipboard');
+      toastr.success("JSON copied to clipboard");
     });
     
     // Download JSON button
-    $('#downloadJsonBtn').on('click', function() {
+    $("#downloadJsonBtn").on("click", function() {
       $.ajax({
-        url: '/export_configuration',
-        type: 'GET',
+        url: "/export_configuration",
+        type: "GET",
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             // Create blob from JSON
-            const blob = new Blob([response.config], { type: 'application/json' });
+            const blob = new Blob([response.config], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             
             // Create temporary link and click it
-            const a = document.createElement('a');
+            const a = document.createElement("a");
             a.href = url;
             a.download = response.filename;
             document.body.appendChild(a);
@@ -1861,14 +1861,14 @@
           }
         },
         error: function() {
-          toastr.error('Failed to export configuration');
+          toastr.error("Failed to export configuration");
         }
       });
     });
     
     // Function to update switches table
     function updateSwitchesTable(entries) {
-      const tableBody = $('#switchesTableBody');
+      const tableBody = $("#switchesTableBody");
       tableBody.empty();
       
       entries.forEach((entry, index) => {
@@ -1883,7 +1883,7 @@
             <td>
               ${entry.uplink_count !== undefined && entry.uplink_speed !== undefined
                 ? `${entry.uplink_count} x ${entry.uplink_speed} Gbps`
-                : 'N/A'}
+                : "N/A"}
             </td>
             <td>
               <button class="btn btn-sm btn-info edit-switch-btn" data-index="${index}">Edit</button>
@@ -1895,7 +1895,7 @@
     
     // Function to update LAN leaves table
     function updateLanLeavesTable(entries) {
-      const tableBody = $('#lanLeavesTableBody');
+      const tableBody = $("#lanLeavesTableBody");
       tableBody.empty();
       
       entries.forEach((entry, index) => {
@@ -1910,9 +1910,9 @@
             <td>${details.type}</td>
             <td>${details.topology}</td>
             <td>
-              ${details.switches.join(', ')}
+              ${details.switches.join(", ")}
               <button class="btn btn-xs btn-info view-switches-btn" 
-                      data-switches="${details.switches.join(', ')}"
+                      data-switches="${details.switches.join(", ")}"
                       data-lan="${lanName}">
                 View Switches
               </button>
@@ -1927,7 +1927,7 @@
     
     // Function to update LAN spines table
     function updateLanSpinesTable(entries) {
-      const tableBody = $('#lanSpinesTableBody');
+      const tableBody = $("#lanSpinesTableBody");
       tableBody.empty();
       
       entries.forEach((entry, index) => {
@@ -1942,9 +1942,9 @@
             <td>${details.type}</td>
             <td>${details.topology}</td>
             <td>
-              ${details.switches.join(', ')}
+              ${details.switches.join(", ")}
               <button class="btn btn-xs btn-info view-switches-btn" 
-                      data-switches="${details.switches.join(', ')}"
+                      data-switches="${details.switches.join(", ")}"
                       data-lan="${spineName}">
                 View Switches
               </button>
@@ -1959,7 +1959,7 @@
     
     // Function to update compute table
     function updateComputeTable(entries) {
-      const tableBody = $('#computeTableBody');
+      const tableBody = $("#computeTableBody");
       tableBody.empty();
       
       entries.forEach((entry) => {
@@ -1976,7 +1976,7 @@
             <td>
               <button class="btn btn-xs btn-info view-lan-details-btn" 
                       data-compute="${name}"
-                      data-details='${JSON.stringify(details)}'>
+                      data-details=\'${JSON.stringify(details)}\'>
                 View LAN Details
               </button>
             </td>
@@ -1987,7 +1987,7 @@
     
     // Function to update storage table
     function updateStorageTable(entries) {
-      const tableBody = $('#storageTableBody');
+      const tableBody = $("#storageTableBody");
       tableBody.empty();
       
       entries.forEach((entry) => {
@@ -2010,7 +2010,7 @@
     
     // Function to update cables table
     function updateCablesTable(entries) {
-      const tableBody = $('#cablesTableBody');
+      const tableBody = $("#cablesTableBody");
       tableBody.empty();
       
       entries.forEach((entry) => {
@@ -2033,7 +2033,7 @@
     
     // Function to update rack rows table
     function updateRackRowsTable(entries) {
-      const tableBody = $('#rackRowsTableBody');
+      const tableBody = $("#rackRowsTableBody");
       tableBody.empty();
       
       entries.forEach((entry) => {
@@ -2055,65 +2055,65 @@
     // Function to update switch dropdowns in other forms
     function updateSwitchDropdowns(switches) {
       // Clear and rebuild switch dropdowns
-      $('#selectedSwitches, #selectedSwitchesSpine, #switchModel').empty();
+      $("#selectedSwitches, #selectedSwitchesSpine, #switchModel").empty();
       
       // Add empty option to switchModel dropdown
-      $('#switchModel').append('<option value="">Select Switch Model</option>');
+      $("#switchModel").append("<option value=\"\">Select Switch Model</option>");
       
       // Add options for each switch
       switches.forEach((switchItem) => {
         const optionText = `${switchItem.model} (${switchItem.ports} ports, ${switchItem.speed} Gbps)`;
         
-        $('#selectedSwitches, #selectedSwitchesSpine').append(
+        $("#selectedSwitches, #selectedSwitchesSpine").append(
           `<option value="${switchItem.model}">${optionText}</option>`
         );
         
-        $('#switchModel').append(
+        $("#switchModel").append(
           `<option value="${switchItem.model}">${optionText}</option>`
         );
       });
       
       // Refresh Select2 instances
-      $('#selectedSwitches, #selectedSwitchesSpine').trigger('change');
+      $("#selectedSwitches, #selectedSwitchesSpine").trigger("change");
     }
     
     // Function to clear entries
     function clearEntries(category) {
       $.ajax({
-        url: '/clear_entries',
-        type: 'POST',
+        url: "/clear_entries",
+        type: "POST",
         data: { category: category },
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             toastr.success(response.message);
             
             // Clear corresponding table
             switch (category) {
-              case 'switches':
-                $('#switchesTableBody').empty();
+              case "switches":
+                $("#switchesTableBody").empty();
                 updateSwitchDropdowns([]);
                 break;
-              case 'lan_leaves':
-                $('#lanLeavesTableBody').empty();
+              case "lan_leaves":
+                $("#lanLeavesTableBody").empty();
                 updateLanRoles();
                 break;
-              case 'lan_spines':
-                $('#lanSpinesTableBody').empty();
+              case "lan_spines":
+                $("#lanSpinesTableBody").empty();
                 break;
-              case 'compute':
-                $('#computeTableBody').empty();
+              case "compute":
+                $("#computeTableBody").empty();
                 break;
-              case 'storage':
-                $('#storageTableBody').empty();
+              case "storage":
+                $("#storageTableBody").empty();
                 break;
-              case 'cables':
-                $('#cablesTableBody').empty();
+              case "cables":
+                $("#cablesTableBody").empty();
                 break;
-              case 'rack_rows':
-                $('#rackRowsTableBody').empty();
+              case "rack_rows":
+                $("#rackRowsTableBody").empty();
                 break;
-              case 'all':
-                $('#switchesTableBody, #lanLeavesTableBody, #lanSpinesTableBody, #computeTableBody, #storageTableBody, #cablesTableBody, #rackRowsTableBody').empty();
+              case "all":
+                $("#switchesTableBody, #lanLeavesTableBody, #lanSpinesTableBody, #computeTableBody, #storageTableBody, #cablesTableBody, #rackRowsTableBody").empty();
                 updateSwitchDropdowns([]);
                 updateLanRoles();
                 break;
@@ -2126,7 +2126,7 @@
           }
         },
         error: function() {
-          toastr.error('Failed to clear entries');
+          toastr.error("Failed to clear entries");
         }
       });
     }
@@ -2134,26 +2134,26 @@
     // Function to refresh JSON display
     function refreshJsonDisplay() {
       $.ajax({
-        url: '/get_all_entries',
-        type: 'GET',
+        url: "/get_all_entries",
+        type: "GET",
         success: function(response) {
           // Format JSON with indentation
           const formattedJson = JSON.stringify(response, null, 2);
           
           // Update all JSON display
-          $('#allJsonDisplay').text(formattedJson);
+          $("#allJsonDisplay").text(formattedJson);
           
           // Update individual category JSON displays
-          $('#switchesJsonDisplay').text(JSON.stringify(response.switches, null, 2));
-          $('#lanLeavesJsonDisplay').text(JSON.stringify(response.lan_leaves, null, 2));
-          $('#lanSpinesJsonDisplay').text(JSON.stringify(response.lan_spines, null, 2));
-          $('#computeJsonDisplay').text(JSON.stringify(response.compute_nodes, null, 2));
-          $('#storageJsonDisplay').text(JSON.stringify(response.storage_blocks, null, 2));
-          $('#cablesJsonDisplay').text(JSON.stringify(response.cables, null, 2));
-          $('#rackRowsJsonDisplay').text(JSON.stringify(response.rack_rows, null, 2));
+          $("#switchesJsonDisplay").text(JSON.stringify(response.switches, null, 2));
+          $("#lanLeavesJsonDisplay").text(JSON.stringify(response.lan_leaves, null, 2));
+          $("#lanSpinesJsonDisplay").text(JSON.stringify(response.lan_spines, null, 2));
+          $("#computeJsonDisplay").text(JSON.stringify(response.compute_nodes, null, 2));
+          $("#storageJsonDisplay").text(JSON.stringify(response.storage_blocks, null, 2));
+          $("#cablesJsonDisplay").text(JSON.stringify(response.cables, null, 2));
+          $("#rackRowsJsonDisplay").text(JSON.stringify(response.rack_rows, null, 2));
         },
         error: function() {
-          toastr.error('Failed to refresh JSON display');
+          toastr.error("Failed to refresh JSON display");
         }
       });
     }
@@ -2161,22 +2161,22 @@
     // Function to update LAN roles in compute form
     function updateLanRoles() {
       $.ajax({
-        url: '/get_lan_roles',
-        type: 'GET',
+        url: "/get_lan_roles",
+        type: "GET",
         success: function(response) {
-          if (response.status === 'success') {
+          if (response.status === "success") {
             const lanRoles = response.lan_roles;
             
             // Update role badges in compute form
             for (let i = 1; i <= 6; i++) {
               const lanName = `LAN_${i}`;
-              const role = lanRoles[lanName] || '';
+              const role = lanRoles[lanName] || "";
               $(`#lan_${i}_role_badge`).text(role);
             }
           }
         },
         error: function() {
-          console.error('Failed to get LAN roles');
+          console.error("Failed to get LAN roles");
         }
       });
     }
@@ -2184,19 +2184,19 @@
     // Function to get next LAN number
     function getNextLanNumber() {
       $.ajax({
-        url: '/get_next_lan_number',
-        type: 'GET',
+        url: "/get_next_lan_number",
+        type: "GET",
         success: function(response) {
-          if (response.status === 'success') {
-            $('#lanNumber').val(response.next_lan_number);
-            $('#lanName').val(`LAN_${response.next_lan_number}`);
+          if (response.status === "success") {
+            $("#lanNumber").val(response.next_lan_number);
+            $("#lanName").val(`LAN_${response.next_lan_number}`);
             
-            $('#spineNumber').val(response.next_lan_number);
-            $('#spineName').val(`LAN_${response.next_lan_number}_spines`);
+            $("#spineNumber").val(response.next_lan_number);
+            $("#spineName").val(`LAN_${response.next_lan_number}_spines`);
           }
         },
         error: function() {
-          console.error('Failed to get next LAN number');
+          console.error("Failed to get next LAN number");
         }
       });
     }
