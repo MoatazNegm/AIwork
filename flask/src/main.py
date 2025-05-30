@@ -8,6 +8,7 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
+
 # Project name
 project_name = "Data Center Configuration"
 
