@@ -1,587 +1,720 @@
 import sys
 import os
 import json
-from datetime import datetime
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))  # DON'T CHANGE THIS !!!
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+import datetime
 
-from flask import Flask, render_template, request, jsonify
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 app = Flask(__name__)
 
+# Register blueprints
+from routes.upload import upload_bp
+from routes.delete import delete_bp
+app.register_blueprint(upload_bp)
+app.register_blueprint(delete_bp)
 
-# Project name
-project_name = "Data Center Configuration"
-
-# Store switches separately for reference in other sections
-switches_entries = [
-    {'model': 'IB+400', 'ports': 64, 'speed': 400, 'height': 2, 'wattage': 2000, 'weight': 20},
-    {'model': 'Z_9xxx', 'ports': 64, 'speed': 400, 'height': 2, 'wattage': 1304, 'uplink_count': 4, 'uplink_speed': 800, 'weight': 20},
-    {'model': 'S_xx64', 'ports': 64, 'speed': 25, 'height': 2, 'wattage': 300, 'uplink_count': 4, 'uplink_speed': 100, 'weight': 12},
-    {'model': 'SN_24', 'ports': 24, 'speed': 1, 'height': 1, 'wattage': 200, 'uplink_count': 2, 'uplink_speed': 25, 'weight': 6}
-]
-
-# Store submitted entries in memory (in a real app, you'd use a database)
-# Pre-populate LAN leaves with default values from the provided dictionary
-lan_leaves_entries = [
-    {'LAN_1': {'fixedqty': 12, 'type': '400gbsNDR', 'topology': 'halfports_spine_leaf', 'role': 'IB',
-              'switches': ['IB+400']}},
-    {'LAN_2': {'fixedqty': 14, 'type': '400GbpsEth', 'topology': 'uplinks_spine_leaf', 'role': 'FE storage',
-              'switches': ['Z_9xxx']}},
-    {'LAN_4': {'fixedqty': 4, 'type': '25gbps', 'topology': 'uplinks_spine_leaf', 'role': 'mgmt 1',
-              'switches': ['S_xx64']}},
-    {'LAN_5': {'fixedqty': 4, 'type': '25gbps', 'topology': 'uplinks_spine_leaf', 'role': 'mgmt 2',
-              'switches': ['S_xx64']}},
-    {'LAN_6': {'fixedqty': 1000, 'type': '1gbps', 'topology': 'uplinks_spine_leaf', 'role': 'OOB',
-              'switches': ['SN_24']}},
-    {'LAN_3': {'fixedqty': 1, 'type': '400GbpsEth', 'topology': 'rails', 'role': 'GPU_net',
-              'switches': ['Z_9xxx']}}
-]
-
-# Pre-populate LAN spines with default values from the provided dictionary
-lan_spines_entries = [
-    {'LAN_1_spines': {'fixedqty': 8, 'type': '400gbsNDR', 'topology': 'halfports_spine_leaf', 'role': 'IB',
-                     'switches': ['IB+400']}},
-    {'LAN_2_spines': {'fixedqty': 8, 'type': '400GbpsEth', 'topology': 'uplinks_spine_leaf', 'role': 'FE storage',
-                     'switches': ['Z_9xxx']}},
-    {'LAN_4_spines': {'fixedqty': 2, 'type': '25gbps', 'topology': 'uplinks_spine_leaf', 'role': 'mgmt 1',
-                     'switches': ['S_xx64']}},
-    {'LAN_5_spines': {'fixedqty': 2, 'type': '25gbps', 'topology': 'uplinks_spine_leaf', 'role': 'mgmt 2',
-                     'switches': ['S_xx64']}},
-    {'LAN_6_spines': {'fixedqty': 1000, 'type': '1gbps', 'topology': 'uplinks_spine_leaf', 'role': 'OOB',
-                     'switches': ['SN_24']}},
-    {'LAN_3_spines': {'fixedqty': 0, 'type': '400GbpsEth', 'topology': 'rails', 'role': 'GPU_net',
-                     'switches': ['Z_9xxx']}}
-]
-
+# Initialize data structures
+switches = []
+lan_leaves = []
+lan_spines = []
 compute_entries = []
 storage_entries = []
 cables_entries = []
 rack_rows_entries = []
+project_name = "Data Center Configuration"
+
+# Create data directory if it doesn't exist
+os.makedirs(os.path.join(os.path.dirname(__file__), 'data'), exist_ok=True)
+
+# Default LAN roles
+lan_roles = {}
+
+# Function to save configuration to file
+def save_configuration():
+    config = {
+        "project_name": project_name,
+        "switches": switches,
+        "lan_leaves": lan_leaves,
+        "lan_spines": lan_spines,
+        "compute_nodes": compute_entries,
+        "storage_blocks": storage_entries,
+        "cables": cables_entries,
+        "rack_rows": rack_rows_entries
+    }
+    
+    # Create safe filename from project name
+    safe_filename = "".join([c if c.isalnum() else "_" for c in project_name])
+    
+    # Save to file
+    filepath = os.path.join(os.path.dirname(__file__), 'data', f"{safe_filename}.json")
+    with open(filepath, 'w') as f:
+        json.dump(config, f, indent=2)
+    
+    return filepath
 
 @app.route('/')
 def index():
-    # Get LAN roles for compute nodes
-    lan_roles = {}
-    for entry in lan_leaves_entries:
-        for lan_name, details in entry.items():
-            if lan_name.startswith('LAN_'):
-                lan_roles[lan_name] = details.get('role', '')
-    
     # Get next LAN number
     next_lan_number = 1
-    for entry in lan_leaves_entries:
-        for lan_name in entry.keys():
+    existing_lan_numbers = []
+    
+    for leaf in lan_leaves:
+        for lan_name in leaf.keys():
             if lan_name.startswith('LAN_'):
                 try:
                     num = int(lan_name.split('_')[1])
-                    next_lan_number = max(next_lan_number, num + 1)
+                    existing_lan_numbers.append(num)
                 except (IndexError, ValueError):
                     pass
     
-    return render_template('index.html', 
+    if existing_lan_numbers:
+        next_lan_number = max(existing_lan_numbers) + 1
+    
+    return render_template('index.html',
                           project_name=project_name,
-                          switches=switches_entries,
-                          lan_leaves=lan_leaves_entries,
-                          lan_spines=lan_spines_entries,
+                          switches=switches,
+                          lan_leaves=lan_leaves,
+                          lan_spines=lan_spines,
                           compute_entries=compute_entries,
                           storage_entries=storage_entries,
                           cables_entries=cables_entries,
                           rack_rows_entries=rack_rows_entries,
-                          lan_roles=lan_roles,
-                          next_lan_number=next_lan_number)
+                          next_lan_number=next_lan_number,
+                          lan_roles=lan_roles)
 
 @app.route('/update_project_name', methods=['POST'])
 def update_project_name():
     global project_name
-    new_name = request.form.get('project_name')
-    if new_name:
-        project_name = new_name
-        return jsonify({
-            'status': 'success',
-            'message': 'Project name updated successfully',
-            'project_name': project_name
-        })
+    project_name = request.form.get('project_name', 'Data Center Configuration')
+    
+    # Save configuration with new project name
+    save_configuration()
+    
     return jsonify({
-        'status': 'error',
-        'message': 'Invalid project name'
+        "status": "success",
+        "message": "Project name updated successfully"
     })
 
 @app.route('/submit_switch', methods=['POST'])
 def submit_switch():
-    # Get form data from AJAX request
-    switch_model = request.form.get('model')
-    switch_ports = request.form.get('ports')
-    switch_speed = request.form.get('speed')
-    switch_height = request.form.get('height')
-    switch_wattage = request.form.get('wattage')
-    switch_weight = request.form.get('weight')
+    global switches
     
-    # Optional uplink data
-    uplink_count = request.form.get('uplink_count')
-    uplink_speed = request.form.get('uplink_speed')
+    # Get form data
+    model = request.form.get('model')
+    ports = int(request.form.get('ports', 0))
+    speed = int(request.form.get('speed', 0))
+    height = float(request.form.get('height', 0))
+    wattage = float(request.form.get('wattage', 0))
+    weight = float(request.form.get('weight', 0))
     
-    # Create switch dictionary
-    switch_dict = {
-        'model': switch_model,
-        'ports': int(switch_ports) if switch_ports else 0,
-        'speed': int(switch_speed) if switch_speed else 0,
-        'height': int(switch_height) if switch_height else 0,
-        'wattage': int(switch_wattage) if switch_wattage else 0,
-        'weight': int(switch_weight) if switch_weight else 0
+    # Optional fields
+    uplink_count = request.form.get('uplink_count', '')
+    uplink_speed = request.form.get('uplink_speed', '')
+    
+    # Create switch entry
+    switch_entry = {
+        "model": model,
+        "ports": ports,
+        "speed": speed,
+        "height": height,
+        "wattage": wattage,
+        "weight": weight
     }
     
-    # Add uplink data if provided
+    # Add optional fields if provided
     if uplink_count and uplink_speed:
-        switch_dict['uplink_count'] = int(uplink_count)
-        switch_dict['uplink_speed'] = int(uplink_speed)
+        switch_entry["uplink_count"] = int(uplink_count)
+        switch_entry["uplink_speed"] = int(uplink_speed)
     
-    # Check if editing an existing entry
-    edit_index = request.form.get('edit_index')
+    # Check if editing existing entry
+    edit_index = request.form.get('edit_index', '')
     if edit_index and edit_index.isdigit():
         index = int(edit_index)
-        if 0 <= index < len(switches_entries):
-            switches_entries[index] = switch_dict
-            message = 'Switch updated successfully'
+        if 0 <= index < len(switches):
+            switches[index] = switch_entry
+            message = "Switch updated successfully"
         else:
-            switches_entries.append(switch_dict)
-            message = 'Switch added successfully'
+            return jsonify({
+                "status": "error",
+                "message": "Invalid switch index"
+            })
     else:
-        # Check if switch model already exists
-        for i, switch in enumerate(switches_entries):
-            if switch['model'] == switch_model:
-                switches_entries[i] = switch_dict
-                message = 'Switch updated successfully'
-                break
-        else:
-            switches_entries.append(switch_dict)
-            message = 'Switch added successfully'
+        # Add new entry
+        switches.append(switch_entry)
+        message = "Switch added successfully"
     
-    # Save configuration to file
+    # Save configuration
     save_configuration()
     
-    # Return response with all entries
-    response = {
-        'status': 'success',
-        'message': message,
-        'entry': switch_dict,
-        'all_entries': switches_entries
-    }
-    
-    return jsonify(response)
-
-@app.route('/submit_compute', methods=['POST'])
-def submit_compute():
-    # Get form data from AJAX request
-    compute_name = request.form.get('compute_name')
-    count = request.form.get('count')
-    wattage = request.form.get('wattage')
-    height = request.form.get('height')
-    weight = request.form.get('weight')
-    
-    # Get LAN data
-    lan_data = {}
-    for i in range(1, 7):  # LAN_1 through LAN_6
-        lan_count = request.form.get(f'lan_{i}_count')
-        lan_speed = request.form.get(f'lan_{i}_speed')
-        lan_data[f'LAN_{i}'] = {
-            'count': int(lan_count) if lan_count else 0,
-            'speed': int(lan_speed) if lan_speed else 0
-        }
-    
-    # Create entry dictionary
-    entry = {
-        compute_name: {
-            'count': int(count) if count else 0,
-            'wattage': float(wattage) if wattage else 0,
-            'height': float(height) if height else 0,
-            'weight': float(weight) if weight else 0,
-            **lan_data
-        }
-    }
-    
-    # Add to entries list
-    compute_entries.append(entry)
-    
-    # Save configuration to file
-    save_configuration()
-    
-    # Return response with all entries
-    response = {
-        'status': 'success',
-        'message': 'Compute entry added successfully',
-        'entry': entry,
-        'all_entries': compute_entries
-    }
-    
-    return jsonify(response)
+    return jsonify({
+        "status": "success",
+        "message": message,
+        "all_entries": switches
+    })
 
 @app.route('/submit_lan_leaf', methods=['POST'])
 def submit_lan_leaf():
-    # Get form data from AJAX request
+    global lan_leaves, lan_roles
+    
+    # Get form data
     lan_name = request.form.get('lan_name')
-    fixed_qty = request.form.get('fixed_qty')
+    role = request.form.get('role')
+    fixed_qty = int(request.form.get('fixed_qty', 0))
     lan_type = request.form.get('lan_type')
     topology = request.form.get('topology')
-    role = request.form.get('role')
-    
-    # Get selected switches
     selected_switches = request.form.getlist('selected_switches[]')
     
-    # Create entry dictionary
-    entry = {
+    # Create LAN leaf entry
+    lan_leaf_entry = {
         lan_name: {
-            'fixedqty': int(fixed_qty) if fixed_qty else 0,
-            'type': lan_type,
-            'topology': topology,
-            'role': role,
-            'switches': selected_switches
+            "role": role,
+            "fixedqty": fixed_qty,
+            "type": lan_type,
+            "topology": topology,
+            "switches": selected_switches
         }
     }
     
-    # Check if editing an existing entry
-    edit_index = request.form.get('edit_index')
+    # Update LAN roles
+    lan_roles[lan_name] = role
+    
+    # Check if editing existing entry
+    edit_index = request.form.get('edit_index', '')
     if edit_index and edit_index.isdigit():
         index = int(edit_index)
-        if 0 <= index < len(lan_leaves_entries):
-            lan_leaves_entries[index] = entry
-            message = 'LAN leaf entry updated successfully'
+        if 0 <= index < len(lan_leaves):
+            lan_leaves[index] = lan_leaf_entry
+            message = "LAN leaf updated successfully"
         else:
-            lan_leaves_entries.append(entry)
-            message = 'LAN leaf entry added successfully'
+            return jsonify({
+                "status": "error",
+                "message": "Invalid LAN leaf index"
+            })
     else:
-        lan_leaves_entries.append(entry)
-        message = 'LAN leaf entry added successfully'
+        # Add new entry
+        lan_leaves.append(lan_leaf_entry)
+        message = "LAN leaf added successfully"
     
-    # Save configuration to file
+    # Save configuration
     save_configuration()
     
-    # Return response with all entries
-    response = {
-        'status': 'success',
-        'message': message,
-        'entry': entry,
-        'all_entries': lan_leaves_entries
-    }
-    
-    return jsonify(response)
+    return jsonify({
+        "status": "success",
+        "message": message,
+        "all_entries": lan_leaves
+    })
 
 @app.route('/submit_lan_spine', methods=['POST'])
 def submit_lan_spine():
-    # Get form data from AJAX request
+    global lan_spines
+    
+    # Get form data
     spine_name = request.form.get('spine_name')
-    fixed_qty = request.form.get('fixed_qty')
+    role = request.form.get('role')
+    fixed_qty = int(request.form.get('fixed_qty', 0))
     spine_type = request.form.get('spine_type')
     topology = request.form.get('topology')
-    role = request.form.get('role')
-    
-    # Get selected switches
     selected_switches = request.form.getlist('selected_switches_spine[]')
     
-    # Create entry dictionary
-    entry = {
+    # Create LAN spine entry
+    lan_spine_entry = {
         spine_name: {
-            'fixedqty': int(fixed_qty) if fixed_qty else 0,
-            'type': spine_type,
-            'topology': topology,
-            'role': role,
-            'switches': selected_switches
+            "role": role,
+            "fixedqty": fixed_qty,
+            "type": spine_type,
+            "topology": topology,
+            "switches": selected_switches
         }
     }
     
-    # Check if editing an existing entry
-    edit_index = request.form.get('edit_index')
+    # Check if editing existing entry
+    edit_index = request.form.get('edit_index', '')
     if edit_index and edit_index.isdigit():
         index = int(edit_index)
-        if 0 <= index < len(lan_spines_entries):
-            lan_spines_entries[index] = entry
-            message = 'LAN spine entry updated successfully'
+        if 0 <= index < len(lan_spines):
+            lan_spines[index] = lan_spine_entry
+            message = "LAN spine updated successfully"
         else:
-            lan_spines_entries.append(entry)
-            message = 'LAN spine entry added successfully'
+            return jsonify({
+                "status": "error",
+                "message": "Invalid LAN spine index"
+            })
     else:
-        lan_spines_entries.append(entry)
-        message = 'LAN spine entry added successfully'
+        # Add new entry
+        lan_spines.append(lan_spine_entry)
+        message = "LAN spine added successfully"
     
-    # Save configuration to file
+    # Save configuration
     save_configuration()
     
-    # Return response with all entries
-    response = {
-        'status': 'success',
-        'message': message,
-        'entry': entry,
-        'all_entries': lan_spines_entries
+    return jsonify({
+        "status": "success",
+        "message": message,
+        "all_entries": lan_spines
+    })
+
+@app.route('/submit_compute', methods=['POST'])
+def submit_compute():
+    global compute_entries
+    
+    # Get form data
+    compute_name = request.form.get('compute_name')
+    count = int(request.form.get('count', 0))
+    wattage = float(request.form.get('wattage', 0))
+    height = float(request.form.get('height', 0))
+    weight = float(request.form.get('weight', 0))
+    
+    # Create compute entry
+    compute_entry = {
+        compute_name: {
+            "count": count,
+            "wattage": wattage,
+            "height": height,
+            "weight": weight
+        }
     }
     
-    return jsonify(response)
+    # Add LAN details
+    for i in range(1, 7):
+        lan_count = request.form.get(f'lan_{i}_count', '')
+        lan_speed = request.form.get(f'lan_{i}_speed', '')
+        
+        if lan_count and lan_speed:
+            compute_entry[compute_name][f'LAN_{i}'] = {
+                "count": int(lan_count),
+                "speed": int(lan_speed)
+            }
+    
+    # Check if editing existing entry
+    edit_index = request.form.get('edit_index', '')
+    if edit_index and edit_index.isdigit():
+        index = int(edit_index)
+        if 0 <= index < len(compute_entries):
+            compute_entries[index] = compute_entry
+            message = "Compute node updated successfully"
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Invalid compute node index"
+            })
+    else:
+        # Add new entry
+        compute_entries.append(compute_entry)
+        message = "Compute node added successfully"
+    
+    # Save configuration
+    save_configuration()
+    
+    return jsonify({
+        "status": "success",
+        "message": message,
+        "all_entries": compute_entries
+    })
 
 @app.route('/submit_cable', methods=['POST'])
 def submit_cable():
-    # Get form data from AJAX request
+    global cables_entries
+    
+    # Get form data
     switch_model = request.form.get('switch_model')
     cable_model = request.form.get('cable_model')
-    server_port_speed = request.form.get('server_port_speed')
-    split = request.form.get('split')
-    length = request.form.get('length')
+    server_port_speed = int(request.form.get('server_port_speed', 0))
+    split = int(request.form.get('split', 1))
+    length = float(request.form.get('length', 0))
     
-    # Create cable dictionary
-    cable_dict = {
-        'model': cable_model,
-        'server_port_speed': int(server_port_speed) if server_port_speed else 0,
-        'split': int(split) if split else 1,
-        'length': float(length) if length else 0
+    # Create cable entry
+    cable_entry = {
+        "model": cable_model,
+        "server_port_speed": server_port_speed,
+        "split": split,
+        "length": length
     }
     
-    # Check if switch model already exists in cables_entries
+    # Check if switch model already exists in cables
     switch_exists = False
     for entry in cables_entries:
         if switch_model in entry:
-            entry[switch_model].append(cable_dict)
+            entry[switch_model].append(cable_entry)
             switch_exists = True
             break
     
-    # If switch model doesn't exist, create new entry
     if not switch_exists:
-        entry = {
-            switch_model: [cable_dict]
-        }
-        cables_entries.append(entry)
+        # Add new switch model with cable
+        cables_entries.append({
+            switch_model: [cable_entry]
+        })
     
-    # Save configuration to file
+    # Save configuration
     save_configuration()
     
-    # Return response with all entries
-    response = {
-        'status': 'success',
-        'message': 'Cable entry added successfully',
-        'all_entries': cables_entries
-    }
-    
-    return jsonify(response)
+    return jsonify({
+        "status": "success",
+        "message": "Cable added successfully",
+        "all_entries": cables_entries
+    })
 
 @app.route('/submit_rack_row', methods=['POST'])
 def submit_rack_row():
-    # Get form data from AJAX request
-    group_name = request.form.get('group_name')
-    racks = request.form.get('racks')
-    group_count = request.form.get('group_count')
-    rack_to_rack = request.form.get('rack_to_rack')
-    row_to_next_row = request.form.get('row_to_next_row')
+    global rack_rows_entries
     
-    # Create entry dictionary
-    entry = {
-        'Group': {
-            'Racks': int(racks) if racks else 0,
-            'group_count': int(group_count) if group_count else 0,
-            'rack_to_rack': float(rack_to_rack) if rack_to_rack else 0,
-            'Row_to_next_row': float(row_to_next_row) if row_to_next_row else 0
+    # Get form data
+    group_name = request.form.get('group_name')
+    racks = int(request.form.get('racks', 0))
+    group_count = int(request.form.get('group_count', 0))
+    rack_to_rack = float(request.form.get('rack_to_rack', 0))
+    row_to_next_row = float(request.form.get('row_to_next_row', 0))
+    
+    # Create rack row entry
+    rack_row_entry = {
+        group_name: {
+            "Racks": racks,
+            "group_count": group_count,
+            "rack_to_rack": rack_to_rack,
+            "Row_to_next_row": row_to_next_row
         }
     }
     
-    # Add to entries list
-    rack_rows_entries.append(entry)
+    # Add to rack rows entries
+    rack_rows_entries.append(rack_row_entry)
     
-    # Save configuration to file
+    # Save configuration
     save_configuration()
     
-    # Return response with all entries
-    response = {
-        'status': 'success',
-        'message': 'Rack row entry added successfully',
-        'entry': entry,
-        'all_entries': rack_rows_entries
-    }
-    
-    return jsonify(response)
+    return jsonify({
+        "status": "success",
+        "message": "Rack row added successfully",
+        "all_entries": rack_rows_entries
+    })
 
 @app.route('/get_switch', methods=['GET'])
 def get_switch():
-    index = request.args.get('index')
-    if index and index.isdigit():
-        index = int(index)
-        if 0 <= index < len(switches_entries):
-            return jsonify({
-                'status': 'success',
-                'entry': switches_entries[index],
-                'index': index
-            })
-    return jsonify({
-        'status': 'error',
-        'message': 'Invalid index or entry not found'
-    })
+    index = int(request.args.get('index', -1))
+    
+    if 0 <= index < len(switches):
+        return jsonify({
+            "status": "success",
+            "entry": switches[index]
+        })
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid switch index"
+        })
 
 @app.route('/get_lan_leaf', methods=['GET'])
 def get_lan_leaf():
-    index = request.args.get('index')
-    if index and index.isdigit():
-        index = int(index)
-        if 0 <= index < len(lan_leaves_entries):
-            return jsonify({
-                'status': 'success',
-                'entry': lan_leaves_entries[index],
-                'index': index
-            })
-    return jsonify({
-        'status': 'error',
-        'message': 'Invalid index or entry not found'
-    })
+    index = int(request.args.get('index', -1))
+    
+    if 0 <= index < len(lan_leaves):
+        return jsonify({
+            "status": "success",
+            "entry": lan_leaves[index]
+        })
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid LAN leaf index"
+        })
 
 @app.route('/get_lan_spine', methods=['GET'])
 def get_lan_spine():
-    index = request.args.get('index')
-    if index and index.isdigit():
-        index = int(index)
-        if 0 <= index < len(lan_spines_entries):
-            return jsonify({
-                'status': 'success',
-                'entry': lan_spines_entries[index],
-                'index': index
-            })
+    index = int(request.args.get('index', -1))
+    
+    if 0 <= index < len(lan_spines):
+        return jsonify({
+            "status": "success",
+            "entry": lan_spines[index]
+        })
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid LAN spine index"
+        })
+
+@app.route('/get_compute', methods=['GET'])
+def get_compute():
+    index = int(request.args.get('index', -1))
+    
+    if 0 <= index < len(compute_entries):
+        return jsonify({
+            "status": "success",
+            "entry": compute_entries[index]
+        })
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid compute node index"
+        })
+
+@app.route('/clear_entries', methods=['POST'])
+def clear_entries():
+    global switches, lan_leaves, lan_spines, compute_entries, storage_entries, cables_entries, rack_rows_entries, lan_roles
+    
+    category = request.form.get('category')
+    
+    if category == 'switches':
+        switches = []
+        message = "All switches cleared"
+    elif category == 'lan_leaves':
+        lan_leaves = []
+        lan_roles = {}
+        message = "All LAN leaves cleared"
+    elif category == 'lan_spines':
+        lan_spines = []
+        message = "All LAN spines cleared"
+    elif category == 'compute':
+        compute_entries = []
+        message = "All compute nodes cleared"
+    elif category == 'storage':
+        storage_entries = []
+        message = "All storage blocks cleared"
+    elif category == 'cables':
+        cables_entries = []
+        message = "All cables cleared"
+    elif category == 'rack_rows':
+        rack_rows_entries = []
+        message = "All rack rows cleared"
+    elif category == 'all':
+        switches = []
+        lan_leaves = []
+        lan_spines = []
+        compute_entries = []
+        storage_entries = []
+        cables_entries = []
+        rack_rows_entries = []
+        lan_roles = {}
+        message = "All entries cleared"
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid category"
+        })
+    
+    # Save configuration
+    save_configuration()
+    
     return jsonify({
-        'status': 'error',
-        'message': 'Invalid index or entry not found'
+        "status": "success",
+        "message": message
+    })
+
+@app.route('/get_all_entries', methods=['GET'])
+def get_all_entries():
+    return jsonify({
+        "project_name": project_name,
+        "switches": switches,
+        "lan_leaves": lan_leaves,
+        "lan_spines": lan_spines,
+        "compute_nodes": compute_entries,
+        "storage_blocks": storage_entries,
+        "cables": cables_entries,
+        "rack_rows": rack_rows_entries
     })
 
 @app.route('/get_lan_roles', methods=['GET'])
 def get_lan_roles():
-    # Get LAN roles for compute nodes
-    lan_roles = {}
-    for entry in lan_leaves_entries:
-        for lan_name, details in entry.items():
-            if lan_name.startswith('LAN_'):
-                lan_roles[lan_name] = details.get('role', '')
-    
     return jsonify({
-        'status': 'success',
-        'lan_roles': lan_roles
+        "status": "success",
+        "lan_roles": lan_roles
     })
 
 @app.route('/get_next_lan_number', methods=['GET'])
 def get_next_lan_number():
     # Get next LAN number
     next_lan_number = 1
-    for entry in lan_leaves_entries:
-        for lan_name in entry.keys():
+    existing_lan_numbers = []
+    
+    for leaf in lan_leaves:
+        for lan_name in leaf.keys():
             if lan_name.startswith('LAN_'):
                 try:
                     num = int(lan_name.split('_')[1])
-                    next_lan_number = max(next_lan_number, num + 1)
+                    existing_lan_numbers.append(num)
                 except (IndexError, ValueError):
                     pass
     
+    if existing_lan_numbers:
+        next_lan_number = max(existing_lan_numbers) + 1
+    
     return jsonify({
-        'status': 'success',
-        'next_lan_number': next_lan_number
+        "status": "success",
+        "next_lan_number": next_lan_number
     })
-
-@app.route('/get_all_entries', methods=['GET'])
-def get_all_entries():
-    all_data = {
-        'project_name': project_name,
-        'switches': switches_entries,
-        'lan_leaves': lan_leaves_entries,
-        'lan_spines': lan_spines_entries,
-        'compute_nodes': compute_entries,
-        'storage_blocks': storage_entries,
-        'cables': cables_entries,
-        'rack_rows': rack_rows_entries
-    }
-    return jsonify(all_data)
-
-@app.route('/clear_entries', methods=['POST'])
-def clear_entries():
-    global project_name
-    category = request.form.get('category', 'all')
-    
-    if category == 'all':
-        switches_entries.clear()
-        lan_leaves_entries.clear()
-        lan_spines_entries.clear()
-        compute_entries.clear()
-        storage_entries.clear()
-        cables_entries.clear()
-        rack_rows_entries.clear()
-        message = 'All entries cleared'
-    elif category == 'switches':
-        switches_entries.clear()
-        message = 'Switches entries cleared'
-    elif category == 'lan_leaves':
-        lan_leaves_entries.clear()
-        message = 'LAN leaves entries cleared'
-    elif category == 'lan_spines':
-        lan_spines_entries.clear()
-        message = 'LAN spines entries cleared'
-    elif category == 'compute':
-        compute_entries.clear()
-        message = 'Compute entries cleared'
-    elif category == 'storage':
-        storage_entries.clear()
-        message = 'Storage entries cleared'
-    elif category == 'cables':
-        cables_entries.clear()
-        message = 'Cables entries cleared'
-    elif category == 'rack_rows':
-        rack_rows_entries.clear()
-        message = 'Rack rows entries cleared'
-    
-    # Save configuration to file
-    save_configuration()
-    
-    return jsonify({'status': 'success', 'message': message})
 
 @app.route('/export_configuration', methods=['GET'])
 def export_configuration():
-    # Create configuration dictionary
     config = {
-        'project_name': project_name,
-        'switches': switches_entries,
-        'lan_leaves': lan_leaves_entries,
-        'lan_spines': lan_spines_entries,
-        'compute_nodes': compute_entries,
-        'storage_blocks': storage_entries,
-        'cables': cables_entries,
-        'rack_rows': rack_rows_entries,
-        'export_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        "project_name": project_name,
+        "switches": switches,
+        "lan_leaves": lan_leaves,
+        "lan_spines": lan_spines,
+        "compute_nodes": compute_entries,
+        "storage_blocks": storage_entries,
+        "cables": cables_entries,
+        "rack_rows": rack_rows_entries
     }
     
-    # Convert to JSON
-    config_json = json.dumps(config, indent=2)
+    # Create safe filename from project name
+    safe_filename = "".join([c if c.isalnum() else "_" for c in project_name])
+    filename = f"{safe_filename}.json"
     
-    # Return as downloadable file
     return jsonify({
-        'status': 'success',
-        'message': 'Configuration exported successfully',
-        'config': config_json,
-        'filename': f"{project_name.replace(' ', '_')}.json"
+        "status": "success",
+        "message": "Configuration exported successfully",
+        "config": json.dumps(config, indent=2),
+        "filename": filename
     })
 
-def save_configuration():
-    """Save the current configuration to a file"""
-    # Create configuration dictionary
-    config = {
-        'project_name': project_name,
-        'switches': switches_entries,
-        'lan_leaves': lan_leaves_entries,
-        'lan_spines': lan_spines_entries,
-        'compute_nodes': compute_entries,
-        'storage_blocks': storage_entries,
-        'cables': cables_entries,
-        'rack_rows': rack_rows_entries,
-        'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
+@app.route('/import_configuration', methods=['POST'])
+def import_configuration():
+    global switches, lan_leaves, lan_spines, compute_entries, storage_entries, cables_entries, rack_rows_entries, project_name, lan_roles
     
-    # Create directory if it doesn't exist
-    os.makedirs('data', exist_ok=True)
+    if 'config_file' not in request.files:
+        return jsonify({
+            "status": "error",
+            "message": "No file provided"
+        })
     
-    # Save to file
-    filename = f"data/{project_name.replace(' ', '_')}.json"
-    with open(filename, 'w') as f:
-        json.dump(config, f, indent=2)
+    file = request.files['config_file']
     
-    return filename
+    if file.filename == '':
+        return jsonify({
+            "status": "error",
+            "message": "No file selected"
+        })
+    
+    try:
+        # Try to parse as JSON
+        content = file.read().decode('utf-8')
+        
+        # Check if content is a Python dictionary string
+        if content.strip().startswith('{') and content.strip().endswith('}'):
+            # Try to parse as JSON
+            config = json.loads(content)
+        else:
+            # Try to evaluate as Python dictionary
+            # This is potentially unsafe, but we're assuming trusted input
+            import ast
+            config_dict = {}
+            
+            # Parse the Python dictionary-like content
+            exec_globals = {}
+            exec(content, exec_globals)
+            
+            # Extract the dictionaries we're interested in
+            if 'colors_info' in exec_globals:
+                config_dict['compute_nodes'] = []
+                for name, details in exec_globals['colors_info'].items():
+                    config_dict['compute_nodes'].append({name: details})
+            
+            if 'Rack_rows' in exec_globals:
+                config_dict['rack_rows'] = []
+                for name, details in exec_globals['Rack_rows'].items():
+                    config_dict['rack_rows'].append({name: details})
+            
+            if 'LANs' in exec_globals:
+                config_dict['lan_leaves'] = []
+                for name, details in exec_globals['LANs'].items():
+                    # Extract switches from the LAN
+                    switches_list = []
+                    if 'switch' in details:
+                        for switch in details['switch']:
+                            # Add switch to switches list if not already there
+                            if switch not in switches:
+                                switches.append(switch)
+                            switches_list.append(switch['model'])
+                    
+                    # Create LAN leaf entry
+                    lan_leaf = {
+                        name: {
+                            "role": details.get('role', ''),
+                            "fixedqty": details.get('fixedqty', 0),
+                            "type": details.get('type', ''),
+                            "topology": details.get('topology', ''),
+                            "switches": switches_list
+                        }
+                    }
+                    config_dict['lan_leaves'].append(lan_leaf)
+                    
+                    # Update LAN roles
+                    lan_roles[name] = details.get('role', '')
+            
+            if 'Spines' in exec_globals:
+                config_dict['lan_spines'] = []
+                for name, details in exec_globals['Spines'].items():
+                    # Extract switches from the spine
+                    switches_list = []
+                    if 'switch' in details:
+                        for switch in details['switch']:
+                            # Add switch to switches list if not already there
+                            if switch not in switches:
+                                switches.append(switch)
+                            switches_list.append(switch['model'])
+                    
+                    # Create LAN spine entry
+                    lan_spine = {
+                        name: {
+                            "role": details.get('role', ''),
+                            "fixedqty": details.get('fixedqty', 0),
+                            "type": details.get('type', ''),
+                            "topology": details.get('topology', ''),
+                            "switches": switches_list
+                        }
+                    }
+                    config_dict['lan_spines'].append(lan_spine)
+            
+            if 'Cables' in exec_globals:
+                config_dict['cables'] = []
+                for switch_model, cables in exec_globals['Cables'].items():
+                    config_dict['cables'].append({switch_model: cables})
+            
+            config = config_dict
+        
+        # Update data structures
+        if 'project_name' in config:
+            project_name = config['project_name']
+        
+        if 'switches' in config:
+            switches = config['switches']
+        
+        if 'lan_leaves' in config:
+            lan_leaves = config['lan_leaves']
+            # Update LAN roles
+            for leaf in lan_leaves:
+                for lan_name, details in leaf.items():
+                    if 'role' in details:
+                        lan_roles[lan_name] = details['role']
+        
+        if 'lan_spines' in config:
+            lan_spines = config['lan_spines']
+        
+        if 'compute_nodes' in config:
+            compute_entries = config['compute_nodes']
+        
+        if 'storage_blocks' in config:
+            storage_entries = config['storage_blocks']
+        
+        if 'cables' in config:
+            cables_entries = config['cables']
+        
+        if 'rack_rows' in config:
+            rack_rows_entries = config['rack_rows']
+        
+        # Save configuration
+        save_configuration()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Configuration imported successfully"
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Error importing configuration: {str(e)}"
+        })
 
 if __name__ == '__main__':
-    # Create data directory if it doesn't exist
-    os.makedirs('data', exist_ok=True)
-    
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
+

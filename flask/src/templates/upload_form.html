@@ -1,0 +1,59 @@
+<!-- File Upload Modal -->
+<div class="modal fade" id="uploadFileModal" tabindex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="uploadFileModalLabel">Upload Configuration File</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="uploadFileForm" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="configFile">Select Configuration File</label>
+            <input type="file" class="form-control-file" id="configFile" name="config_file" accept=".txt" required>
+            <small class="form-text text-muted">Upload a text file containing Python-style dictionaries.</small>
+          </div>
+          <div class="form-group">
+            <label>Data Handling Options</label>
+            <div class="custom-control custom-radio">
+              <input type="radio" id="mergeOption" name="data_option" value="merge" class="custom-control-input" checked>
+              <label class="custom-control-label" for="mergeOption">Merge with existing data</label>
+            </div>
+            <div class="custom-control custom-radio">
+              <input type="radio" id="replaceOption" name="data_option" value="replace" class="custom-control-input">
+              <label class="custom-control-label" for="replaceOption">Replace existing data</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="submitUploadBtn">Upload</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Result Modal -->
+<div class="modal fade" id="uploadResultModal" tabindex="-1" role="dialog" aria-labelledby="uploadResultModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="uploadResultModalLabel">Upload Results</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="uploadResultContent">
+          <!-- Results will be displayed here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

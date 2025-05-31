@@ -1,0 +1,10 @@
+{
+  "project_name": "MEWA",
+  "switches": [],
+  "lan_leaves": [],
+  "lan_spines": [],
+  "compute_nodes": [],
+  "storage_blocks": [],
+  "cables": [],
+  "rack_rows": []
+}

@@ -1,0 +1,74 @@
+// Backend endpoint for getting compute node data
+@app.route('/get_compute', methods=['GET'])
+def get_compute():
+    index = int(request.args.get('index', -1))
+    
+    if 0 <= index < len(compute_entries):
+        return jsonify({
+            "status": "success",
+            "entry": compute_entries[index]
+        })
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid compute node index"
+        })
+
+// Update submit_compute to handle editing
+@app.route('/submit_compute', methods=['POST'])
+def submit_compute():
+    global compute_entries
+    
+    # Get form data
+    compute_name = request.form.get('compute_name')
+    count = int(request.form.get('count', 0))
+    wattage = float(request.form.get('wattage', 0))
+    height = float(request.form.get('height', 0))
+    weight = float(request.form.get('weight', 0))
+    
+    # Create compute entry
+    compute_entry = {
+        compute_name: {
+            "count": count,
+            "wattage": wattage,
+            "height": height,
+            "weight": weight
+        }
+    }
+    
+    # Add LAN details
+    for i in range(1, 7):
+        lan_count = request.form.get(f'lan_{i}_count', '')
+        lan_speed = request.form.get(f'lan_{i}_speed', '')
+        
+        if lan_count and lan_speed:
+            compute_entry[compute_name][f'LAN_{i}'] = {
+                "count": int(lan_count),
+                "speed": int(lan_speed)
+            }
+    
+    # Check if editing existing entry
+    edit_index = request.form.get('edit_index', '')
+    if edit_index and edit_index.isdigit():
+        index = int(edit_index)
+        if 0 <= index < len(compute_entries):
+            compute_entries[index] = compute_entry
+            message = "Compute node updated successfully"
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Invalid compute node index"
+            })
+    else:
+        # Add new entry
+        compute_entries.append(compute_entry)
+        message = "Compute node added successfully"
+    
+    # Save configuration
+    save_configuration()
+    
+    return jsonify({
+        "status": "success",
+        "message": message,
+        "all_entries": compute_entries
+    })

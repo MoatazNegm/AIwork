@@ -8,16 +8,16 @@
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/fontawesome-free/css/all.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/fontawesome-free/css/all.min.css") }}">
   <!-- Theme style -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/dist/css/adminlte.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/dist/css/adminlte.min.css") }}">
   <!-- SweetAlert2 -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css") }}">
   <!-- Toastr -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/toastr/toastr.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/toastr/toastr.min.css") }}">
   <!-- Select2 -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/select2/css/select2.min.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/select2/css/select2.min.css") }}">
+  <link rel="stylesheet" href="{{ url_for("static", filename="adminlte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css") }}">
   <style>
     .clickable-row {
       cursor: pointer;
@@ -56,6 +56,9 @@
       border: 1px solid #ced4da;
       border-radius: 3px;
     }
+    #importConfigBtn, #uploadConfigBtn {
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -84,8 +87,8 @@
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="#" class="brand-link">
-      <img src="{{ url_for('static', filename='adminlte/dist/img/AdminLTELogo.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-      <span class="brand-text font-weight-light">Data Center Config</span>
+      <img src="{{ url_for("static", filename="adminlte/dist/img/AdminLTELogo.png") }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+      <span class="brand-text font-weight-light" id="sidebarProjectName">{{ project_name }}</span>
     </a>
 
     <!-- Sidebar -->
@@ -631,9 +634,11 @@
                           </div>
                         </div>
                       </div>
+                      <input type="hidden" id="computeEditIndex" name="edit_index" value="">
                       <div class="row">
                         <div class="col-12">
-                          <button type="submit" class="btn btn-primary">Add Compute Node</button>
+                          <button type="submit" class="btn btn-primary" id="submitComputeBtn">Add Compute Node</button>
+                          <button type="button" class="btn btn-secondary d-none" id="cancelComputeEditBtn">Cancel Edit</button>
                           <button type="button" class="btn btn-danger float-right" id="clearComputeBtn">Clear All Compute Nodes</button>
                         </div>
                       </div>
@@ -663,7 +668,7 @@
                       <tbody id="computeTableBody">
                         {% for entry in compute_entries %}
                           {% for name, details in entry.items() %}
-                            <tr>
+                            <tr class="clickable-row" data-index="{{ loop.index0 }}">
                               <td>{{ name }}</td>
                               <td>{{ details.count }}</td>
                               <td>{{ details.wattage }}</td>
@@ -675,6 +680,9 @@
                                         data-details="{{ details|tojson }}">
                                   View LAN Details
                                 </button>
+                              </td>
+                              <td>
+                                <button class="btn btn-sm btn-info edit-compute-btn" data-index="{{ loop.index0 }}">Edit</button>
                               </td>
                             </tr>
                           {% endfor %}
@@ -810,8 +818,8 @@
                       <div class="row">
                         <div class="col-md-6">
                           <div class="form-group">
-                            <label for="switchModel">Switch Model</label>
-                            <select class="form-control" id="switchModel" name="switch_model" required>
+                            <label for="cableSwitchModel">Switch Model</label>
+                            <select class="form-control" id="cableSwitchModel" name="switch_model" required>
                               <option value="">Select Switch Model</option>
                               {% for switch in switches %}
                                 <option value="{{ switch.model }}">{{ switch.model }} ({{ switch.ports }} ports, {{ switch.speed }} Gbps)</option>
@@ -1130,24 +1138,24 @@
   <!-- Footer -->
   <footer class="main-footer">
     <div class="float-right d-none d-sm-block">
-      <b>Version</b> 1.0.0
+      <b>Version</b> 1.1.0
     </div>
     <strong>Data Center Configuration Tool</strong>
   </footer>
 </div>
 
 <!-- jQuery -->
-<script src="{{ url_for('static', filename='adminlte/plugins/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/jquery/jquery.min.js") }}"></script>
 <!-- Bootstrap 4 -->
-<script src="{{ url_for('static', filename='adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js") }}"></script>
 <!-- AdminLTE App -->
-<script src="{{ url_for('static', filename='adminlte/dist/js/adminlte.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/dist/js/adminlte.min.js") }}"></script>
 <!-- SweetAlert2 -->
-<script src="{{ url_for('static', filename='adminlte/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/sweetalert2/sweetalert2.min.js") }}"></script>
 <!-- Toastr -->
-<script src="{{ url_for('static', filename='adminlte/plugins/toastr/toastr.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/toastr/toastr.min.js") }}"></script>
 <!-- Select2 -->
-<script src="{{ url_for('static', filename='adminlte/plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ url_for("static", filename="adminlte/plugins/select2/js/select2.full.min.js") }}"></script>
 
 <script>
   $(function () {
@@ -1180,6 +1188,7 @@
         if (e.type === "blur" || e.which === 13) {
           const newTitle = $(this).val();
           $("#projectTitle").text(newTitle);
+          $("#sidebarProjectName").text(newTitle); // Update sidebar title
           
           // Send AJAX request to update project name
           $.ajax({
@@ -1201,6 +1210,60 @@
           });
           
           e.preventDefault();
+        }
+      });
+    });
+    
+    // Import Config Button
+    $("#importConfigBtn").on("click", function() {
+      $("#configFileInput").click();
+    });
+    
+    // Handle file input change
+    $("#configFileInput").on("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) {
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append("config_file", file);
+      
+      // Show loading indicator
+      Swal.fire({
+        title: "Importing Configuration...",
+        text: "Please wait while the configuration is being imported.",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      $.ajax({
+        url: "/import_configuration",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          Swal.close();
+          if (response.status === "success") {
+            toastr.success(response.message);
+            // Reload the page to reflect imported data
+            window.location.reload();
+          } else {
+            toastr.error(response.message);
+            Swal.fire("Import Failed", response.message, "error");
+          }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          Swal.close();
+          toastr.error("Failed to import configuration: " + errorThrown);
+          Swal.fire("Import Failed", "An error occurred during import: " + errorThrown, "error");
+        },
+        complete: function() {
+          // Reset file input
+          $("#configFileInput").val("");
         }
       });
     });
@@ -1358,43 +1421,30 @@
     $("#storageForm").on("submit", function(e) {
       e.preventDefault();
       
-      const formData = {
-        storage_name: $("#storageName").val(),
-        count: $("#storageCount").val(),
-        wattage: $("#storageWattage").val(),
-        height: $("#storageHeight").val(),
-        weight: $("#storageWeight").val(),
-        capacity: $("#storageCapacity").val(),
-        type: $("#storageType").val()
-      };
-      
-      // Create storage entry
-      const entry = {
-        [formData.storage_name]: {
-          count: parseInt(formData.count) || 0,
-          wattage: parseFloat(formData.wattage) || 0,
-          height: parseFloat(formData.height) || 0,
-          weight: parseFloat(formData.weight) || 0,
-          capacity: parseFloat(formData.capacity) || 0,
-          type: formData.type
+      $.ajax({
+        url: "/submit_storage",
+        type: "POST",
+        data: $(this).serialize(),
+        success: function(response) {
+          if (response.status === "success") {
+            toastr.success(response.message);
+            
+            // Reset form
+            $("#storageForm")[0].reset();
+            
+            // Update storage table
+            updateStorageTable(response.all_entries);
+            
+            // Refresh JSON display
+            refreshJsonDisplay();
+          } else {
+            toastr.error(response.message);
+          }
+        },
+        error: function() {
+          toastr.error("Failed to submit storage block");
         }
-      };
-      
-      // Add to storage entries
-      const storageEntries = JSON.parse($("#storageJsonDisplay").text() || "[]");
-      storageEntries.push(entry);
-      
-      // Update storage table
-      updateStorageTable(storageEntries);
-      
-      // Reset form
-      $("#storageForm")[0].reset();
-      
-      // Show success message
-      toastr.success("Storage entry added successfully");
-      
-      // Refresh JSON display
-      refreshJsonDisplay();
+      });
     });
     
     // Cable Form Submission
@@ -1978,7 +2028,7 @@
             <td>
               <button class="btn btn-xs btn-info view-lan-details-btn" 
                       data-compute="${name}"
-                      data-details='${JSON.stringify(details)}'>
+                      data-details=\'${JSON.stringify(details)}\'>
                 View LAN Details
               </button>
             </td>
@@ -2057,10 +2107,10 @@
     // Function to update switch dropdowns in other forms
     function updateSwitchDropdowns(switches) {
       // Clear and rebuild switch dropdowns
-      $("#selectedSwitches, #selectedSwitchesSpine, #switchModel").empty();
+      $("#selectedSwitches, #selectedSwitchesSpine, #cableSwitchModel").empty();
       
-      // Add empty option to switchModel dropdown
-      $("#switchModel").append("<option value=\"\">Select Switch Model</option>");
+      // Add empty option to cableSwitchModel dropdown
+      $("#cableSwitchModel").append("<option value=\"\">Select Switch Model</option>");
       
       // Add options for each switch
       switches.forEach((switchItem) => {
@@ -2070,7 +2120,7 @@
           `<option value="${switchItem.model}">${optionText}</option>`
         );
         
-        $("#switchModel").append(
+        $("#cableSwitchModel").append(
           `<option value="${switchItem.model}">${optionText}</option>`
         );
       });
@@ -2210,5 +2260,13 @@
     updateLanRoles();
   });
 </script>
+{% include 'upload_form.html' %}
+
+<!-- Include custom JS -->
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+<script src="{{ url_for('static', filename='js/row_click_handler.js') }}"></script>
+<script src="{{ url_for('static', filename='js/switch_handler.js') }}"></script>
+<script src="{{ url_for('static', filename='js/compute_handler.js') }}"></script>
 </body>
 </html>
+
