@@ -985,21 +985,24 @@
                           <th>Group Count</th>
                           <th>Rack to Rack (m)</th>
                           <th>Row to Next Row (m)</th>
+			  <th>Actions</th> </tr>
                         </tr>
                       </thead>
-                      <tbody id="rackRowsTableBody">
-                        {% for entry in rack_rows_entries %}
-                          {% for group_name, details in entry.items() %}
-                            <tr>
-                              <td>{{ group_name }}</td>
-                              <td>{{ details.Racks }}</td>
-                              <td>{{ details.group_count }}</td>
-                              <td>{{ details.rack_to_rack }}</td>
-                              <td>{{ details.Row_to_next_row }}</td>
-                            </tr>
-                          {% endfor %}
-                        {% endfor %}
-                      </tbody>
+		      <tbody id="rackRowsTableBody">
+			  {% for entry in rack_rows_entries %}
+			    {% for group_name, details in entry.items() %}
+			      <tr class="clickable-row" data-index="{{ loop.index0 }}"> <td>{{ group_name }}</td>
+				<td>{{ details.Racks }}</td>
+				<td>{{ details.group_count }}</td>
+				<td>{{ details.rack_to_rack }}</td>
+				<td>{{ details.Row_to_next_row }}</td>
+				<td>
+				  <button class="btn btn-sm btn-info edit-rack-row-btn" data-index="{{ loop.index0 }}">Edit</button>
+				  </td>
+			      </tr>
+			    {% endfor %}
+			  {% endfor %}
+		     </tbody>
                     </table>
                   </div>
                 </div>
@@ -2427,6 +2430,7 @@ function updateCablesTable(entries) {
 <script src="{{ url_for('static', filename='js/switch_handler.js') }}"></script>
 <script src="{{ url_for('static', filename='js/compute_handler.js') }}"></script>
 		<script> 
+			var rack_rows_entries = {{ rack_rows_entries | tojson | safe }};
 			var cables_entries = {{ cables_entries | tojson | safe }};
 		</script>
 </body>
