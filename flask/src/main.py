@@ -318,6 +318,7 @@ def submit_cable():
     
     # Get form data
     switch_model = request.form.get('switch_model')
+    original_switch_model = request.form.get('original_switch_model', switch_model)
     cable_model = request.form.get('cable_model')
     server_port_speed = int(request.form.get('server_port_speed', 0))
     split = int(request.form.get('split', 1))
@@ -331,28 +332,66 @@ def submit_cable():
         "length": length
     }
     
-    # Check if switch model already exists in cables
-    switch_exists = False
-    for entry in cables_entries:
-        if switch_model in entry:
-            entry[switch_model].append(cable_entry)
-            switch_exists = True
-            break
-    
-    if not switch_exists:
-        # Add new switch model with cable
-        cables_entries.append({
-            switch_model: [cable_entry]
+    # Check if editing existing entry
+    edit_index = request.form.get('edit_index', '')
+    if edit_index and edit_index.isdigit():
+        index = int(edit_index)
+        
+        # Find and update the existing cable
+        for entry in cables_entries:
+            if original_switch_model in entry:
+                if index < len(entry[original_switch_model]):
+                    # If switch model changed, remove from old and add to new
+                    if original_switch_model != switch_model:
+                        entry[original_switch_model].pop(index)
+                        if len(entry[original_switch_model]) == 0:
+                            cables_entries.remove(entry)
+                        # Add to new switch model
+                        switch_exists = False
+                        for new_entry in cables_entries:
+                            if switch_model in new_entry:
+                                new_entry[switch_model].append(cable_entry)
+                                switch_exists = True
+                                break
+                        if not switch_exists:
+                            cables_entries.append({switch_model: [cable_entry]})
+                    else:
+                        # Just update the existing entry
+                        entry[original_switch_model][index] = cable_entry
+                    
+                    # Save configuration
+                    save_configuration()
+                    
+                    return jsonify({
+                        "status": "success",
+                        "message": "Cable updated successfully",
+                        "all_entries": cables_entries
+                    })
+        
+        return jsonify({
+            "status": "error",
+            "message": "Invalid cable index"
         })
-    
-    # Save configuration
-    save_configuration()
-    
-    return jsonify({
-        "status": "success",
-        "message": "Cable added successfully",
-        "all_entries": cables_entries
-    })
+    else:
+        # Add new cable
+        switch_exists = False
+        for entry in cables_entries:
+            if switch_model in entry:
+                entry[switch_model].append(cable_entry)
+                switch_exists = True
+                break
+        
+        if not switch_exists:
+            cables_entries.append({switch_model: [cable_entry]})
+        
+        # Save configuration
+        save_configuration()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Cable added successfully",
+            "all_entries": cables_entries
+        })
 
 @app.route('/submit_rack_row', methods=['POST'])
 def submit_rack_row():
@@ -446,6 +485,42 @@ def get_compute():
             "status": "error",
             "message": "Invalid compute node index"
         })
+
+@app.route('/delete_cable', methods=['POST'])
+def delete_cable():
+    global cables_entries
+    
+    switch_model = request.form.get('switch_model')
+    cable_index = int(request.form.get('cable_index'))
+    
+    # Find the switch model entry
+    for i, entry in enumerate(cables_entries):
+        if switch_model in entry:
+            # Remove the specific cable
+            entry[switch_model].pop(cable_index)
+            
+            # If no more cables for this switch, remove the switch entry
+            if len(entry[switch_model]) == 0:
+                cables_entries.pop(i)
+                
+            # Save configuration
+            save_configuration()
+            
+            return jsonify({
+                "status": "success",
+                "message": "Cable deleted successfully",
+                "all_entries": cables_entries
+            })
+    
+    return jsonify({
+        "status": "error",
+        "message": "Cable not found"
+    })
+
+
+
+
+
 
 @app.route('/clear_entries', methods=['POST'])
 def clear_entries():

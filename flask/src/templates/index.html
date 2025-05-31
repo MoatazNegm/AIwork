@@ -815,6 +815,8 @@
                   </div>
                   <div class="card-body">
                     <form id="cableForm">
+		      <input type="hidden" id="cableEditSwitchModel" name="switch_model" value="">
+ 	              <input type="hidden" id="cableEditIndex" name="edit_index" value="">
                       <div class="row">
                         <div class="col-md-6">
                           <div class="form-group">
@@ -882,21 +884,30 @@
                           <th>Length (m)</th>
                         </tr>
                       </thead>
-                      <tbody id="cablesTableBody">
-                        {% for entry in cables_entries %}
-                          {% for switch_model, cables in entry.items() %}
-                            {% for cable in cables %}
-                              <tr>
-                                <td>{{ switch_model }}</td>
-                                <td>{{ cable.model }}</td>
-                                <td>{{ cable.server_port_speed }}</td>
-                                <td>{{ cable.split }}</td>
-                                <td>{{ cable.length }}</td>
-                              </tr>
-                            {% endfor %}
-                          {% endfor %}
-                        {% endfor %}
-                      </tbody>
+		      <!-- In the cables table body section -->
+		      <tbody id="cablesTableBody">
+			  {% for entry in cables_entries %}
+			    {% for switch_model, cables in entry.items() %}
+			      {% for cable in cables %}
+				<tr class="clickable-row" data-switch-model="{{ switch_model }}" data-cable-index="{{ loop.index0 }}">
+				  <td>{{ switch_model }}</td>
+				  <td>{{ cable.model }}</td>
+				  <td>{{ cable.server_port_speed }}</td>
+				  <td>{{ cable.split }}</td>
+				  <td>{{ cable.length }}</td>
+				  <td>
+				    <button class="btn btn-sm btn-info edit-cable-btn"
+					    data-switch-model="{{ switch_model }}"
+					    data-cable-index="{{ loop.index0 }}">Edit</button>
+				    <button class="btn btn-sm btn-danger delete-cable-btn"
+					    data-switch-model="{{ switch_model }}"
+					    data-cable-index="{{ loop.index0 }}">Delete</button>
+				  </td>
+				</tr>
+			      {% endfor %}
+			    {% endfor %}
+			  {% endfor %}
+		      </tbody>
                     </table>
                   </div>
                 </div>
@@ -1609,7 +1620,155 @@
         }
       });
     });
+    // Add to the existing JavaScript in index.html
+
+// Edit Cable button click handler
+$(document).on("click", ".edit-cable-btn, #cablesTableBody .clickable-row", function(e) {
+  e.stopPropagation();
+  const switchModel = $(this).data("switch-model");
+  const cableIndex = $(this).data("cable-index");
+  
+  // Find the cable in the cables_entries
+  let cableEntry = null;
+  for (const entry of cables_entries) {
+    if (entry[switchModel] && entry[switchModel][cableIndex]) {
+      cableEntry = entry[switchModel][cableIndex];
+      break;
+    }
+  }
+  
+  if (cableEntry) {
+    // Fill the form with cable data
+    $("#cableSwitchModel").val(switchModel).trigger("change");
+    $("#cableModel").val(cableEntry.model);
+    $("#serverPortSpeed").val(cableEntry.server_port_speed);
+    $("#split").val(cableEntry.split);
+    $("#length").val(cableEntry.length);
     
+    // Set edit state
+    $("#cableEditSwitchModel").val(switchModel);
+    $("#cableEditIndex").val(cableIndex);
+    $("#submitCableBtn").text("Update Cable");
+    
+    // Scroll to form
+    $("html, body").animate({
+      scrollTop: $("#cableForm").offset().top - 100
+    }, 200);
+  }
+});
+
+// Delete Cable button click handler
+$(document).on("click", ".delete-cable-btn", function(e) {
+  e.stopPropagation();
+  const switchModel = $(this).data("switch-model");
+  const cableIndex = $(this).data("cable-index");
+  
+  Swal.fire({
+    title: "Are you sure?",
+    text: "This will delete this cable configuration. This action cannot be undone!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: "/delete_cable",
+        type: "POST",
+        data: {
+          switch_model: switchModel,
+          cable_index: cableIndex
+        },
+        success: function(response) {
+          if (response.status === "success") {
+            toastr.success(response.message);
+            updateCablesTable(response.all_entries);
+            refreshJsonDisplay();
+          } else {
+            toastr.error(response.message);
+          }
+        },
+        error: function() {
+          toastr.error("Failed to delete cable");
+        }
+      });
+    }
+  });
+});
+
+// Update the cable form submission to handle edits
+$("#cableForm").on("submit", function(e) {
+  e.preventDefault();
+  
+  const formData = $(this).serializeArray();
+  const editIndex = $("#cableEditIndex").val();
+  const editSwitchModel = $("#cableEditSwitchModel").val();
+  
+  // If editing, we need to include the original switch model
+  if (editIndex !== "" && editSwitchModel !== "") {
+    formData.push({name: "original_switch_model", value: editSwitchModel});
+  }
+  
+  $.ajax({
+    url: "/submit_cable",
+    type: "POST",
+    data: $.param(formData),
+    success: function(response) {
+      if (response.status === "success") {
+        toastr.success(response.message);
+        
+        // Reset form
+        $("#cableForm")[0].reset();
+        $("#cableEditSwitchModel").val("");
+        $("#cableEditIndex").val("");
+        $("#submitCableBtn").text("Add Cable");
+        
+        // Update cables table
+        updateCablesTable(response.all_entries);
+        
+        // Refresh JSON display
+        refreshJsonDisplay();
+      } else {
+        toastr.error(response.message);
+      }
+    },
+    error: function() {
+      toastr.error("Failed to submit cable");
+    }
+  });
+});
+
+// Update the updateCablesTable function to include action buttons
+function updateCablesTable(entries) {
+  const tableBody = $("#cablesTableBody");
+  tableBody.empty();
+  
+  entries.forEach((entry) => {
+    const switchModel = Object.keys(entry)[0];
+    const cables = entry[switchModel];
+    
+    cables.forEach((cable, index) => {
+      tableBody.append(`
+        <tr class="clickable-row" data-switch-model="${switchModel}" data-cable-index="${index}">
+          <td>${switchModel}</td>
+          <td>${cable.model}</td>
+          <td>${cable.server_port_speed}</td>
+          <td>${cable.split}</td>
+          <td>${cable.length}</td>
+          <td>
+            <button class="btn btn-sm btn-info edit-cable-btn" 
+                    data-switch-model="${switchModel}" 
+                    data-cable-index="${index}">Edit</button>
+            <button class="btn btn-sm btn-danger delete-cable-btn" 
+                    data-switch-model="${switchModel}" 
+                    data-cable-index="${index}">Delete</button>
+          </td>
+        </tr>
+      `);
+    });
+  });
+} 
     // Edit LAN Spine
     $(document).on("click", ".edit-lan-spine-btn, #lanSpinesTableBody .clickable-row", function(e) {
       e.stopPropagation();
