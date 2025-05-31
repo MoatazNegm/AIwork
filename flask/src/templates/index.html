@@ -2426,6 +2426,9 @@ function updateCablesTable(entries) {
 <script src="{{ url_for('static', filename='js/row_click_handler.js') }}"></script>
 <script src="{{ url_for('static', filename='js/switch_handler.js') }}"></script>
 <script src="{{ url_for('static', filename='js/compute_handler.js') }}"></script>
+		<script> 
+			var cables_entries = {{ cables_entries | tojson | safe }};
+		</script>
 </body>
 </html>
 
