@@ -1,0 +1,22 @@
+docker pull langgenius/dify-web:latest
+docker pull langgenius/dify-api:latest
+docker run --rm --name dify-db -e POSTGRES_PASSWORD=dify -e POSTGRES_USER=dify -e POSTGRES_DB=dify -p 5432:5432 -d \
+-v /moataz-work/postges:/var/lib/postgresql/data \
+postgres:15
+docker run --rm --name dify-redis -p 6379:6379 -d -v /moataz-work/redis:/data redis:7
+docker run --rm --name dify-api -p 5001:5001 -e DB_HOST=192.168.8.10 -e REDIS_HOS=192.168.8.10 -d  \
+-e  OPENDAL_SCHEME=fs \
+-e OPENDAL_ROOT=/storage \
+-e STORAGE_TYPE=local \
+-e STORAGE_LOCAL_PATH=/storage \
+-e PIP_NO_WARN_SCRIPT_LOCATION=0 \
+-v /moataz-work/dify/:/storage \
+--link dify-db:db \
+  --link dify-redis:redis \
+  -e DB_PORT=5432 \
+  -e DB_USER=dify \
+  -e DB_PASSWORD=dify \
+  -e DB_NAME=dify \
+  -e REDIS_PORT=6379 \
+langgenius/dify-api:latest
+docker run --rm --name dify-web -p 3002:3000 -e API_HOST=http://192.168.8.10:5001 -d langgenius/dify-web:latest
