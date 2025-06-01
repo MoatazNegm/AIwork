@@ -8,6 +8,17 @@ $(function() {
     }
   });
 
+  // Add click handler for clickable rows in compute table
+  $(document).on('click', '#computeTableBody tr.clickable-row', function(e) {
+    // Don't trigger if clicking on a button inside the row
+    if (!$(e.target).closest('button').length) {
+      const index = $(this).data('index');
+      if (index !== undefined) {
+        loadComputeForEdit(index);
+      }
+    }
+  });
+
   // Function to load compute data for editing
   function loadComputeForEdit(index) {
     $.ajax({
@@ -68,4 +79,3 @@ $(function() {
     $(this).addClass("d-none");
   });
 });
-

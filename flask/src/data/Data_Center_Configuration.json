@@ -1,18 +1,1191 @@
 {
   "project_name": "Data Center Configuration",
-  "switches": [],
-  "lan_leaves": [],
-  "lan_spines": [],
-  "compute_nodes": [],
+  "switches": [
+    {
+      "model": "IB+400",
+      "ports": 64,
+      "speed": 400,
+      "height": 2,
+      "wattage": 2000,
+      "weight": 20
+    },
+    {
+      "model": "IB_800",
+      "ports": 64,
+      "speed": 800,
+      "height": 2,
+      "wattage": 2000,
+      "weight": 20
+    },
+    {
+      "model": "Z_9xxx",
+      "ports": 64,
+      "speed": 400,
+      "height": 2,
+      "wattage": 2200,
+      "uplink_count": 4,
+      "uplink_speed": 800,
+      "weight": 20
+    },
+    {
+      "model": "Z_6xxx",
+      "ports": 64,
+      "speed": 200,
+      "height": 1,
+      "wattage": 1304,
+      "uplink_count": 4,
+      "uplink_speed": 400,
+      "weight": 20
+    },
+    {
+      "model": "S_xx64",
+      "ports": 64,
+      "speed": 25,
+      "height": 2,
+      "wattage": 200,
+      "uplink_count": 4,
+      "uplink_speed": 100,
+      "weight": 12
+    },
+    {
+      "model": "S_xx32",
+      "ports": 32,
+      "speed": 25,
+      "height": 1,
+      "wattage": 200,
+      "uplink_count": 2,
+      "uplink_speed": 100,
+      "weight": 12
+    },
+    {
+      "model": "SN_24",
+      "ports": 24,
+      "speed": 1,
+      "height": 1,
+      "wattage": 200,
+      "uplink_count": 2,
+      "uplink_speed": 25,
+      "weight": 6
+    }
+  ],
+  "lan_leaves": [
+    {
+      "LAN_1": {
+        "role": "400gbsNDR",
+        "fixedqty": 12,
+        "type": "400gbsNDR",
+        "topology": "halfports_spine_leaf",
+        "switch": [
+          {
+            "model": "IB+400",
+            "ports": 64,
+            "speed": 400,
+            "height": 2,
+            "wattage": 2000,
+            "weight": 20
+          },
+          {
+            "model": "IB_800",
+            "ports": 64,
+            "speed": 800,
+            "height": 2,
+            "wattage": 2000,
+            "weight": 20
+          }
+        ]
+      }
+    },
+    {
+      "LAN_2": {
+        "role": "400GbpsEth",
+        "fixedqty": 14,
+        "type": "400GbpsEth",
+        "topology": "uplinks_spine_leaf",
+        "switch": [
+          {
+            "model": "Z_9xxx",
+            "ports": 64,
+            "speed": 400,
+            "height": 2,
+            "wattage": 1304,
+            "uplink_count": 4,
+            "uplink_speed": 800,
+            "weight": 20
+          },
+          {
+            "model": "Z_6xxx",
+            "ports": 64,
+            "speed": 200,
+            "height": 1,
+            "wattage": 1304,
+            "uplink_count": 4,
+            "uplink_speed": 400,
+            "weight": 20
+          }
+        ]
+      }
+    },
+    {
+      "LAN_4": {
+        "role": "25gbps",
+        "fixedqty": 4,
+        "type": "25gbps",
+        "topology": "uplinks_spine_leaf",
+        "switch": [
+          {
+            "model": "S_xx64",
+            "ports": 64,
+            "speed": 25,
+            "height": 2,
+            "wattage": 300,
+            "uplink_count": 4,
+            "uplink_speed": 100,
+            "weight": 12
+          },
+          {
+            "model": "S_xx32",
+            "ports": 32,
+            "speed": 25,
+            "height": 1,
+            "wattage": 200,
+            "uplink_count": 4,
+            "uplink_speed": 100,
+            "weight": 12
+          }
+        ]
+      }
+    },
+    {
+      "LAN_5": {
+        "role": "25gbps",
+        "fixedqty": 4,
+        "type": "25gbps",
+        "topology": "uplinks_spine_leaf",
+        "switch": [
+          {
+            "model": "S_xx64",
+            "ports": 64,
+            "speed": 25,
+            "height": 2,
+            "wattage": 200,
+            "uplink_count": 4,
+            "uplink_speed": 100,
+            "weight": 12
+          },
+          {
+            "model": "S_xx32",
+            "ports": 32,
+            "speed": 25,
+            "height": 1,
+            "wattage": 200,
+            "uplink_count": 2,
+            "uplink_speed": 100,
+            "weight": 12
+          }
+        ]
+      }
+    },
+    {
+      "LAN_6": {
+        "role": "1gbps",
+        "fixedqty": 1000,
+        "type": "1gbps",
+        "topology": "uplinks_spine_leaf",
+        "switch": [
+          {
+            "model": "SN_24",
+            "ports": 24,
+            "speed": 1,
+            "height": 1,
+            "wattage": 200,
+            "uplink_count": 2,
+            "uplink_speed": 25,
+            "weight": 6
+          }
+        ]
+      }
+    },
+    {
+      "LAN_3": {
+        "role": "400GbpsEth",
+        "fixedqty": 1,
+        "type": "400GbpsEth",
+        "topology": "rails",
+        "switch": [
+          {
+            "model": "Z_9xxx",
+            "ports": 64,
+            "speed": 400,
+            "height": 2,
+            "wattage": 2200,
+            "uplink_count": 4,
+            "uplink_speed": 800,
+            "weight": 20
+          }
+        ]
+      }
+    }
+  ],
+  "lan_spines": [
+    {
+      "LAN_1_spines": {
+        "role": "400gbsNDR",
+        "fixedqty": 8,
+        "type": "400gbsNDR",
+        "topology": "halfports_spine_leaf",
+        "switch": [
+          {
+            "model": "IB+400",
+            "ports": 64,
+            "speed": 400,
+            "height": 2,
+            "wattage": 2000,
+            "weight": 20
+          },
+          {
+            "model": "IB_800",
+            "ports": 64,
+            "speed": 800,
+            "height": 2,
+            "wattage": 2000,
+            "weight": 20
+          }
+        ]
+      }
+    },
+    {
+      "LAN_2_spines": {
+        "role": "400GbpsEth",
+        "fixedqty": 8,
+        "type": "400GbpsEth",
+        "topology": "uplinks_spine_leaf",
+        "switch": [
+          {
+            "model": "Z_9xxx",
+            "ports": 64,
+            "speed": 400,
+            "height": 2,
+            "wattage": 1304,
+            "uplink_count": 4,
+            "uplink_speed": 800,
+            "weight": 20
+          },
+          {
+            "model": "Z_6xxx",
+            "ports": 64,
+            "speed": 200,
+            "height": 1,
+            "wattage": 1304,
+            "uplink_count": 4,
+            "uplink_speed": 400,
+            "weight": 20
+          }
+        ]
+      }
+    },
+    {
+      "LAN_4_spines": {
+        "role": "25gbps",
+        "fixedqty": 2,
+        "type": "25gbps",
+        "topology": "uplinks_spine_leaf",
+        "switch": [
+          {
+            "model": "S_xx64",
+            "ports": 64,
+            "speed": 25,
+            "height": 2,
+            "wattage": 300,
+            "uplink_count": 4,
+            "uplink_speed": 100,
+            "weight": 12
+          },
+          {
+            "model": "S_xx32",
+            "ports": 32,
+            "speed": 25,
+            "height": 1,
+            "wattage": 200,
+            "uplink_count": 4,
+            "uplink_speed": 100,
+            "weight": 12
+          }
+        ]
+      }
+    },
+    {
+      "LAN_5_spines": {
+        "role": "25gbps",
+        "fixedqty": 2,
+        "type": "25gbps",
+        "topology": "uplinks_spine_leaf",
+        "switch": [
+          {
+            "model": "S_xx64",
+            "ports": 64,
+            "speed": 25,
+            "height": 2,
+            "wattage": 200,
+            "uplink_count": 4,
+            "uplink_speed": 100,
+            "weight": 12
+          },
+          {
+            "model": "S_xx32",
+            "ports": 32,
+            "speed": 25,
+            "height": 1,
+            "wattage": 200,
+            "uplink_count": 2,
+            "uplink_speed": 100,
+            "weight": 12
+          }
+        ]
+      }
+    },
+    {
+      "LAN_6_spines": {
+        "role": "1gbps",
+        "fixedqty": 1000,
+        "type": "1gbps",
+        "topology": "uplinks_spine_leaf",
+        "switch": [
+          {
+            "model": "SN_24",
+            "ports": 24,
+            "speed": 1,
+            "height": 1,
+            "wattage": 200,
+            "uplink_count": 2,
+            "uplink_speed": 25,
+            "weight": 6
+          }
+        ]
+      }
+    },
+    {
+      "LAN_3_spines": {
+        "role": "400GbpsEth",
+        "fixedqty": 0,
+        "type": "400GbpsEth",
+        "topology": "rails",
+        "switch": [
+          {
+            "model": "Z_9xxx",
+            "ports": 64,
+            "speed": 400,
+            "height": 2,
+            "wattage": 2200,
+            "uplink_count": 4,
+            "uplink_speed": 800,
+            "weight": 20
+          }
+        ]
+      }
+    }
+  ],
+  "compute_nodes": [
+    {
+      "std_compute": {
+        "count": 330,
+        "wattage": 2380,
+        "height": 2,
+        "weight": 28.7,
+        "LAN_1": {
+          "count": 1,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 1,
+          "speed": 400
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "fat_compute": {
+        "count": 50,
+        "wattage": 2441,
+        "height": 2,
+        "weight": 28.7,
+        "LAN_1": {
+          "count": 1,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 2,
+          "speed": 400
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 0,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "GPU_largeAI": {
+        "count": 5,
+        "wattage": 11632,
+        "height": 6,
+        "weight": 107,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 1,
+          "speed": 400
+        },
+        "LAN_3": {
+          "count": 8,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "GPU_lowAI": {
+        "count": 10,
+        "wattage": 889,
+        "height": 2,
+        "weight": 27.5,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 1,
+          "speed": 400
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "FE_nodes": {
+        "count": 20,
+        "wattage": 586,
+        "height": 2,
+        "weight": 28.7,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 1,
+          "speed": 200
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "Mmgt": {
+        "count": 12,
+        "wattage": 527,
+        "height": 2,
+        "weight": 28.7,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 0,
+          "speed": 200
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "HPC_ScratchStorge": {
+        "count": 20,
+        "wattage": 918,
+        "height": 2,
+        "weight": 29.3,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 2,
+          "speed": 400
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "HPC_Metadata": {
+        "count": 8,
+        "wattage": 814,
+        "height": 2,
+        "weight": 29.3,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 2,
+          "speed": 400
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "Net_mgmt": {
+        "count": 2,
+        "wattage": 552,
+        "height": 2,
+        "weight": 28.7,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 1,
+          "speed": 200
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 1,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "Powerscale": {
+        "count": 1,
+        "wattage": 7000,
+        "height": 10,
+        "weight": 200,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 16,
+          "speed": 100
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 16,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 16,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    },
+    {
+      "ECS": {
+        "count": 1,
+        "wattage": 10000,
+        "height": 28,
+        "weight": 200,
+        "LAN_1": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_2": {
+          "count": 16,
+          "speed": 200
+        },
+        "LAN_3": {
+          "count": 0,
+          "speed": 400
+        },
+        "LAN_4": {
+          "count": 16,
+          "speed": 25
+        },
+        "LAN_5": {
+          "count": 16,
+          "speed": 25
+        },
+        "LAN_6": {
+          "count": 0,
+          "speed": 1
+        }
+      }
+    }
+  ],
   "storage_blocks": [],
-  "cables": [],
+  "cables": [
+    {
+      "IB+400": [
+        {
+          "model": "1.5m_400IB_copper",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 1.5
+        },
+        {
+          "model": "3m_400IB_copper",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 3
+        },
+        {
+          "model": "5m_400IB_fiber",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 5
+        },
+        {
+          "model": "7m_400IB_fiber",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 7
+        },
+        {
+          "model": "10m_400IB_fiber",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 10
+        },
+        {
+          "model": "20m_400IB_fiber",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 20
+        },
+        {
+          "model": "3m_400sIB_copper",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 3
+        },
+        {
+          "model": "5m_400sIB_fiber",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 5
+        },
+        {
+          "model": "7m_400sIB_fiber",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 7
+        },
+        {
+          "model": "10m_400sIB_fiber",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 10
+        },
+        {
+          "model": "20m_400sIB_fiber",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 20
+        },
+        {
+          "model": "400IB_Morethan_20m_may_need_extra_hop",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 200
+        },
+        {
+          "model": "200IB_Morethan_20m_may_need_extra_hop",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 200
+        }
+      ]
+    },
+    {
+      "IB_800": [
+        {
+          "model": "1.5m_800IB_copper",
+          "server_port_speed": 800,
+          "split": 1,
+          "length": 1.5
+        },
+        {
+          "model": "3m_800IB_copper",
+          "server_port_speed": 800,
+          "split": 1,
+          "length": 3
+        },
+        {
+          "model": "8m_800IB_fiber",
+          "server_port_speed": 800,
+          "split": 1,
+          "length": 5
+        },
+        {
+          "model": "7m_800IB_fiber",
+          "server_port_speed": 800,
+          "split": 1,
+          "length": 7
+        },
+        {
+          "model": "10m_800IB_fiber",
+          "server_port_speed": 800,
+          "split": 1,
+          "length": 10
+        },
+        {
+          "model": "20m_800IB_fiber",
+          "server_port_speed": 800,
+          "split": 1,
+          "length": 20
+        },
+        {
+          "model": "3m_800sIB_copper",
+          "server_port_speed": 400,
+          "split": 2,
+          "length": 3
+        },
+        {
+          "model": "5m_800sIB_fiber",
+          "server_port_speed": 400,
+          "split": 2,
+          "length": 5
+        },
+        {
+          "model": "7m_800sIB_fiber",
+          "server_port_speed": 400,
+          "split": 2,
+          "length": 7
+        },
+        {
+          "model": "10m_800sIB_fiber",
+          "server_port_speed": 400,
+          "split": 2,
+          "length": 10
+        },
+        {
+          "model": "20m_800sIB_fiber",
+          "server_port_speed": 400,
+          "split": 2,
+          "length": 20
+        },
+        {
+          "model": "800IB_Morethan_20m_may_need_extra_hop",
+          "server_port_speed": 800,
+          "split": 2,
+          "length": 200
+        },
+        {
+          "model": "400_Morethan_20m_may_need_extra_hop",
+          "server_port_speed": 400,
+          "split": 2,
+          "length": 200
+        }
+      ]
+    },
+    {
+      "S_xx64": [
+        {
+          "model": "1.5m_25_copper",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 1.5
+        },
+        {
+          "model": "3m_25_copper",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 3
+        },
+        {
+          "model": "5m_25_fiber",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 5
+        },
+        {
+          "model": "7m_25_fiber",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 7
+        },
+        {
+          "model": "10m_25_fiber",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 10
+        },
+        {
+          "model": "20m_25_fiber",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 20
+        },
+        {
+          "model": "Morethan_20mEth_may_need_extra_hop",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 200
+        }
+      ]
+    },
+    {
+      "S_xx32": [
+        {
+          "model": "1.5m_25_copper",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 1.5
+        },
+        {
+          "model": "3m_25_copper",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 3
+        },
+        {
+          "model": "5m_25_fiber",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 5
+        },
+        {
+          "model": "7m_25_fiber",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 7
+        },
+        {
+          "model": "10m_25_fiber",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 10
+        },
+        {
+          "model": "20m_25_fiber",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 20
+        },
+        {
+          "model": "Morethan_20mEth_may_need_extra_hop",
+          "server_port_speed": 25,
+          "split": 1,
+          "length": 200
+        }
+      ]
+    },
+    {
+      "SN_24": [
+        {
+          "model": "1.5m_1_copper",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 1.5
+        },
+        {
+          "model": "3m_1_coppe",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 3
+        },
+        {
+          "model": "5m_1_copper",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 5
+        },
+        {
+          "model": "7m_1_copper",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 7
+        },
+        {
+          "model": "10m_1_copper",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 10
+        },
+        {
+          "model": "20m_1_copper",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 20
+        },
+        {
+          "model": "30m_1_copper",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 30
+        },
+        {
+          "model": "40m_1_copper",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 40
+        },
+        {
+          "model": "Morethan_40m_may_need_batchpanel",
+          "server_port_speed": 1,
+          "split": 1,
+          "length": 200
+        }
+      ]
+    },
+    {
+      "Z_9xxx": [
+        {
+          "model": "1.5m_400_copper_eth",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 1.5
+        },
+        {
+          "model": "3m_400_copper_eth",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 3
+        },
+        {
+          "model": "5m_400_fiber_eth",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 5
+        },
+        {
+          "model": "7m_400_fiber_eth",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 7
+        },
+        {
+          "model": "10m_400_fiber_eth",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 10
+        },
+        {
+          "model": "20m_400_fiber_eth",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 20
+        },
+        {
+          "model": "3m_100s_copper_eth",
+          "server_port_speed": 100,
+          "split": 2,
+          "length": 3
+        },
+        {
+          "model": "5m_100s_fiber_eth",
+          "server_port_speed": 100,
+          "split": 2,
+          "length": 5
+        },
+        {
+          "model": "7m_100s_fiber_eth",
+          "server_port_speed": 100,
+          "split": 2,
+          "length": 7
+        },
+        {
+          "model": "10m_100s_fiber_eth",
+          "server_port_speed": 100,
+          "split": 2,
+          "length": 10
+        },
+        {
+          "model": "20m_100s_fiber_eth",
+          "server_port_speed": 100,
+          "split": 2,
+          "length": 20
+        },
+        {
+          "model": "1.5m_400s_copper_eth",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 1.5
+        },
+        {
+          "model": "3m_400s_copper_eth",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 3
+        },
+        {
+          "model": "5m_400s_fiber_eth",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 5
+        },
+        {
+          "model": "7m_400s_fiber_eth",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 7
+        },
+        {
+          "model": "10m_400s_fiber_eth",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 10
+        },
+        {
+          "model": "20m_400s_fiber_eth",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 20
+        },
+        {
+          "model": "200_Morethan_20m_may_need_extra_hop",
+          "server_port_speed": 200,
+          "split": 2,
+          "length": 200
+        },
+        {
+          "model": "400_Morethan_20m_may_need_extra_hop",
+          "server_port_speed": 400,
+          "split": 1,
+          "length": 200
+        },
+        {
+          "model": "100_Morethan_20m_may_need_extra_hop",
+          "server_port_speed": 100,
+          "split": 2,
+          "length": 200
+        }
+      ]
+    }
+  ],
   "rack_rows": [
     {
-      "leftside": {
+      "Group": {
         "Racks": 10,
-        "group_count": 1,
-        "rack_to_rack": 0.0,
-        "Row_to_next_row": 3.0
+        "group_count": 2,
+        "rack_to_rack": 4.5,
+        "Row_to_next_row": 90
       }
     }
   ]
