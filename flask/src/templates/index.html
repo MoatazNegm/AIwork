@@ -81,8 +81,6 @@
     <div class="sidebar">
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
           <li class="nav-item">
             <a href="#switches" class="nav-link" data-toggle="tab">
               <i class="nav-icon fas fa-network-wired"></i>
@@ -387,6 +385,7 @@
                               </td>
                               <td>
                                 <button class="btn btn-sm btn-info edit-lan-leaf-btn" data-index="{{ i }}">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-lan-leaf-btn" data-index="{{ i }}">Delete</button>
                               </td>
                             </tr>
                           {% endfor %}
@@ -515,6 +514,7 @@
                               </td>
                               <td>
                                 <button class="btn btn-sm btn-info edit-lan-spine-btn" data-index="{{ i }}">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-lan-spine-btn" data-index="{{ i }}">Delete</button>
                               </td>
                             </tr>
                           {% endfor %}
@@ -661,6 +661,7 @@
                               </td>
                               <td>
                                 <button class="btn btn-sm btn-info edit-compute-btn" data-index="{{ i }}" data-compute-name="{{ name }}">Edit</button> {# Use 'i' here #}
+                                <button class="btn btn-sm btn-danger delete-compute-btn" data-index="{{ i }}" data-compute-name="{{ name }}">Delete</button>
                               </td>
                             </tr>
                           {% endfor %}
@@ -791,8 +792,8 @@
                   </div>
                   <div class="card-body">
                     <form id="cableForm">
-		      <input type="hidden" id="cableEditSwitchModel" name="switch_model" value="">
- 	              <input type="hidden" id="cableEditIndex" name="edit_index" value="">
+                      <input type="hidden" id="cableEditSwitchModel" name="switch_model" value="">
+                      <input type="hidden" id="cableEditIndex" name="edit_index" value="">
                       <div class="row">
                         <div class="col-md-12">
                           <div class="form-group">
@@ -837,6 +838,7 @@
                       <div class="row">
                         <div class="col-12">
                           <button type="submit" class="btn btn-primary" id="submitCableBtn">Add Cable</button>
+                          <button type="button" class="btn btn-secondary d-none" id="cancelCableEditBtn">Cancel Edit</button>
                           <button type="button" class="btn btn-danger float-right" id="clearCablesBtn">Clear All Cables</button>
                         </div>
                       </div>
@@ -864,26 +866,18 @@
                         </tr>
                       </thead>
                       <tbody id="cablesTableBody">
-                        {% for entry in cables_entries %}
-                          {% for switch_model, cables in entry.items() %}
-                            {% for cable in cables %}
-                              <tr class="clickable-row" data-switch-model="{{ switch_model }}" data-cable-index="{{ loop.index0 }}">
-                                <td>{{ switch_model }}</td>
-                                <td>{{ cable.model }}</td>
-                                <td>{{ cable.server_port_speed }}</td>
-                                <td>{{ cable.split }}</td>
-                                <td>{{ cable.length }}</td>
-                                <td>
-                                  <button class="btn btn-sm btn-info edit-cable-btn" 
-                                          data-switch-model="{{ switch_model }}" 
-                                          data-cable-index="{{ loop.index0 }}">Edit</button>
-                                  <button class="btn btn-sm btn-danger delete-cable-btn" 
-                                          data-switch-model="{{ switch_model }}" 
-                                          data-cable-index="{{ loop.index0 }}">Delete</button>
-                                </td>
-                              </tr>
-                            {% endfor %}
-                          {% endfor %}
+                        {% for i in range(cables_entries|length) %}
+                          {% set cable = cables_entries[i] %}
+                          <tr class="clickable-row" data-index="{{ i }}">
+                            <td>{{ cable.switch_model }}</td>
+                            <td>{{ cable.cable_model }}</td>
+                            <td>{{ cable.server_port_speed }}</td>
+                            <td>{{ cable.split }}</td>
+                            <td>{{ cable.length }}</td>
+                            <td>
+                              <button class="btn btn-sm btn-info edit-cable-btn" data-index="{{ i }}">Edit</button>
+                            </td>
+                          </tr>
                         {% endfor %}
                       </tbody>
                     </table>
@@ -902,45 +896,39 @@
                   </div>
                   <div class="card-body">
                     <form id="rackRowForm">
+                      <input type="hidden" id="rackRowEditIndex" name="edit_index" value="">
                       <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                           <div class="form-group">
-                            <label for="groupName">Group Name</label>
-                            <input type="text" class="form-control" id="groupName" name="group_name" value="Group" required>
+                            <label for="rowName">Row Name</label>
+                            <input type="text" class="form-control" id="rowName" name="row_name" placeholder="Enter row name" required>
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-group">
+                            <label for="rowNumber">Row Number</label>
+                            <input type="text" class="form-control" id="rowNumber" name="row_number" placeholder="Enter row number" required>
                           </div>
                         </div>
                       </div>
                       <div class="row">
                         <div class="col-md-6">
                           <div class="form-group">
-                            <label for="racks">Racks</label>
-                            <input type="number" class="form-control" id="racks" name="racks" placeholder="Enter number of racks" required>
+                            <label for="rackType">Rack Type</label>
+                            <input type="text" class="form-control" id="rackType" name="rack_type" placeholder="e.g., 42U, 48U" required>
                           </div>
                         </div>
                         <div class="col-md-6">
                           <div class="form-group">
-                            <label for="groupCount">Group Count</label>
-                            <input type="number" class="form-control" id="groupCount" name="group_count" placeholder="Enter group count" required>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-md-6">
-                          <div class="form-group">
-                            <label for="rackToRack">Rack to Rack (m)</label>
-                            <input type="number" class="form-control" id="rackToRack" name="rack_to_rack" placeholder="Enter rack to rack distance" required>
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="form-group">
-                            <label for="rowToNextRow">Row to Next Row (m)</label>
-                            <input type="number" class="form-control" id="rowToNextRow" name="row_to_next_row" placeholder="Enter row to next row distance" required>
+                            <label for="rackCount">Rack Count</label>
+                            <input type="number" class="form-control" id="rackCount" name="rack_count" placeholder="Enter number of racks" required>
                           </div>
                         </div>
                       </div>
                       <div class="row">
                         <div class="col-12">
-                          <button type="submit" class="btn btn-primary">Add Rack Row</button>
+                          <button type="submit" class="btn btn-primary" id="submitRackRowBtn">Add Rack Row</button>
+                          <button type="button" class="btn btn-secondary d-none" id="cancelRackRowEditBtn">Cancel Edit</button>
                           <button type="button" class="btn btn-danger float-right" id="clearRackRowsBtn">Clear All Rack Rows</button>
                         </div>
                       </div>
@@ -959,24 +947,25 @@
                     <table class="table table-hover text-nowrap">
                       <thead>
                         <tr>
-                          <th>Group Name</th>
-                          <th>Racks</th>
-                          <th>Group Count</th>
-                          <th>Rack to Rack (m)</th>
-                          <th>Row to Next Row (m)</th>
+                          <th>Row Name</th>
+                          <th>Row Number</th>
+                          <th>Rack Type</th>
+                          <th>Rack Count</th>
+                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody id="rackRowsTableBody">
-                        {% for entry in rack_rows_entries %}
-                          {% for group_name, details in entry.items() %}
-                            <tr>
-                              <td>{{ group_name }}</td>
-                              <td>{{ details.Racks }}</td>
-                              <td>{{ details.group_count }}</td>
-                              <td>{{ details.rack_to_rack }}</td>
-                              <td>{{ details.Row_to_next_row }}</td>
-                            </tr>
-                          {% endfor %}
+                        {% for i in range(rack_rows_entries|length) %}
+                          {% set rack_row = rack_rows_entries[i] %}
+                          <tr class="clickable-row" data-index="{{ i }}">
+                            <td>{{ rack_row.row_name }}</td>
+                            <td>{{ rack_row.row_number }}</td>
+                            <td>{{ rack_row.rack_type }}</td>
+                            <td>{{ rack_row.rack_count }}</td>
+                            <td>
+                              <button class="btn btn-sm btn-info edit-rack-row-btn" data-index="{{ i }}">Edit</button>
+                            </td>
+                          </tr>
                         {% endfor %}
                       </tbody>
                     </table>
@@ -986,148 +975,56 @@
             </div>
           </div>
           
-          <div class="tab-pane" id="json_output">
+          <div class="tab-pane active" id="json_output">
             <div class="row">
               <div class="col-md-12">
-                <div class="card card-primary">
+                <div class="card card-secondary">
                   <div class="card-header">
-                    <h3 class="card-title">Configuration JSON</h3>
+                    <h3 class="card-title">Current Configuration JSON Output</h3>
                     <div class="card-tools">
-                      <button type="button" class="btn btn-tool" id="copyJsonBtn">
-                        <i class="fas fa-copy"></i> Copy JSON
+                      <button type="button" class="btn btn-tool" id="refreshJsonBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh
                       </button>
-                      <button type="button" class="btn btn-tool" id="downloadJsonBtn">
-                        <i class="fas fa-download"></i> Download JSON
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
                       </button>
                     </div>
                   </div>
                   <div class="card-body">
-                    <ul class="nav nav-tabs" id="jsonTabs" role="tablist">
-                      <li class="nav-item">
-                        <a class="nav-link active" id="all-tab" data-toggle="pill" href="#all-json" role="tab" aria-controls="all-json" aria-selected="true">All</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" id="switches-tab" data-toggle="pill" href="#switches-json" role="tab" aria-controls="switches-json" aria-selected="false">Switches</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" id="lan-leaves-tab" data-toggle="pill" href="#lan-leaves-json" role="tab" aria-controls="lan-leaves-json" aria-selected="false">LAN Leaves</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" id="lan-spines-tab" data-toggle="pill" href="#lan-spines-json" role="tab" aria-controls="lan-spines-json" aria-selected="false">LAN Spines</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" id="compute-tab" data-toggle="pill" href="#compute-json" role="tab" aria-controls="compute-json" aria-selected="false">Compute</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" id="storage-tab" data-toggle="pill" href="#storage-json" role="tab" aria-controls="storage-json" aria-selected="false">Storage</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" id="cables-tab" data-toggle="pill" href="#cables-json" role="tab" aria-controls="cables-json" aria-selected="false">Cables</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" id="rack-rows-tab" data-toggle="pill" href="#rack-rows-json" role="tab" aria-controls="rack-rows-json" aria-selected="false">Rack Rows</a>
-                      </li>
-                    </ul>
-                    <div class="tab-content" id="jsonTabsContent">
-                      <div class="tab-pane fade show active" id="all-json" role="tabpanel" aria-labelledby="all-tab">
-                        <pre class="json-display" id="allJsonDisplay"></pre>
-                      </div>
-                      <div class="tab-pane fade" id="switches-json" role="tabpanel" aria-labelledby="switches-tab">
-                        <pre class="json-display" id="switchesJsonDisplay"></pre>
-                      </div>
-                      <div class="tab-pane fade" id="lan-leaves-json" role="tabpanel" aria-labelledby="lan-leaves-tab">
-                        <pre class="json-display" id="lanLeavesJsonDisplay"></pre>
-                      </div>
-                      <div class="tab-pane fade" id="lan-spines-json" role="tabpanel" aria-labelledby="lan-spines-tab">
-                        <pre class="json-display" id="lanSpinesJsonDisplay"></pre>
-                      </div>
-                      <div class="tab-pane fade" id="compute-json" role="tabpanel" aria-labelledby="compute-tab">
-                        <pre class="json-display" id="computeJsonDisplay"></pre>
-                      </div>
-                      <div class="tab-pane fade" id="storage-json" role="tabpanel" aria-labelledby="storage-tab">
-                        <pre class="json-display" id="storageJsonDisplay"></pre>
-                      </div>
-                      <div class="tab-pane fade" id="cables-json" role="tabpanel" aria-labelledby="cables-tab">
-                        <pre class="json-display" id="cablesJsonDisplay"></pre>
-                      </div>
-                      <div class="tab-pane fade" id="rack-rows-json" role="tabpanel" aria-labelledby="rack-rows-tab">
-                        <pre class="json-display" id="rackRowsJsonDisplay"></pre>
-                      </div>
-                    </div>
+                    <pre id="jsonOutput" class="json-display"></pre>
                   </div>
                 </div>
               </div>
             </div>
+            <div class="row mt-3">
+              <div class="col-md-12 text-center">
+                <button class="btn btn-success" id="exportConfigBtn">
+                  <i class="fas fa-download"></i> Export Configuration
+                </button>
+                <div class="d-inline-block">
+                  <input type="file" id="uploadConfigInput" style="display: none;" accept=".json">
+                  <button class="btn btn-info" id="importConfigBtn">
+                    <i class="fas fa-upload"></i> Import Configuration
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
     </section>
   </div>
-  
-  <div class="modal fade" id="lanDetailsModal">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">LAN Details</h4>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>LAN</th>
-                <th>Role</th>
-                <th>Count</th>
-                <th>Speed (Gbps)</th>
-              </tr>
-            </thead>
-            <tbody id="lanDetailsTableBody">
-            </tbody>
-          </table>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="modal fade" id="switchDetailsModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Switch Details</h4>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <h5 id="switchDetailsLanName"></h5>
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Switch Model</th>
-              </tr>
-            </thead>
-            <tbody id="switchDetailsTableBody">
-            </tbody>
-          </table>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <footer class="main-footer">
     <div class="float-right d-none d-sm-block">
-      <b>Version</b> 1.1.0
+      <b>Version</b> 1.0.0
     </div>
-    <strong>Data Center Configuration Tool</strong>
+    <strong>Copyright &copy; 2024 <a href="https://github.com/AhmedReffat/Data-Center-Configuration-Tool">Ahmed Reffat</a>.</strong> All rights reserved.
   </footer>
+
+  <aside class="control-sidebar control-sidebar-dark">
+  </aside>
 </div>
 
 <script src="{{ url_for("static", filename="adminlte/plugins/jquery/jquery.min.js") }}"></script>
@@ -1139,1246 +1036,94 @@
 
 <script>
   $(function () {
-    // Initialize Select2 Elements
-    $(".select2").select2({
-      theme: "bootstrap4"
-    });
-    
-    // Set active tab from URL hash or default to first tab
-    let activeTab = window.location.hash || "#switches";
-    $("a[href=\"" + activeTab + "\"]").tab("show");
-    
-    // Update URL hash when tab changes
-    $("a[data-toggle=\"tab\"]").on("shown.bs.tab", function (e) {
+    $('.select2').select2()
+
+    $('.select2bs4').select2({
+      theme: 'bootstrap4'
+    })
+
+    // Activate the tab based on URL hash
+    var hash = window.location.hash;
+    if (hash) {
+      $(`.nav-link[href="${hash}"]`).tab('show');
+    } else {
+      // Default to JSON Output tab if no hash
+      $('.nav-link[href="#json_output"]').tab('show');
+    }
+
+    // Handle tab changes to update URL hash
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
       window.location.hash = e.target.hash;
-      
-      // Refresh JSON display when switching to JSON tab
-      if (e.target.hash === "#json_output") {
-        refreshJsonDisplay();
+    });
+
+    // Editable project title
+    $(document).on('click', '#projectTitle', function() {
+      var currentTitle = $(this).text();
+      $(this).replaceWith('<input type="text" class="form-control editable-title-input" id="projectTitleInput" value="' + currentTitle + '">');
+      $('#projectTitleInput').focus();
+    });
+
+    $(document).on('blur', '#projectTitleInput', function() {
+      var newTitle = $(this).val();
+      if (newTitle.trim() === "") {
+        newTitle = "Data Center Configuration";
       }
-    });
-    
-    // Project name editing
-    $("#projectTitle").on("click", function() {
-      const currentTitle = $(this).text();
-      $(this).html(`<input type="text" class="editable-title-input" value="${currentTitle}">`);
-      $(".editable-title-input").focus();
-      
-      $(".editable-title-input").on("blur keypress", function(e) {
-        if (e.type === "blur" || e.which === 13) {
-          const newTitle = $(this).val();
-          $("#projectTitle").text(newTitle);
-          $("#sidebarProjectName").text(newTitle); // Update sidebar title
-          
-          // Send AJAX request to update project name
-          $.ajax({
-            url: "/update_project_name",
-            type: "POST",
-            data: {
-              project_name: newTitle
-            },
-            success: function(response) {
-              if (response.status === "success") {
-                toastr.success(response.message);
-              } else {
-                toastr.error(response.message);
-              }
-            },
-            error: function() {
-              toastr.error("Failed to update project name");
-            }
-          });
-          
-          e.preventDefault();
-        }
-      });
-    });
-    
-    // Import Config Button
-    $("#importConfigBtn").on("click", function() {
-      $("#configFileInput").click();
-    });
-    
-    // Handle file input change
-    $("#configFileInput").on("change", function(e) {
-      const file = e.target.files[0];
-      if (!file) {
-        return;
-      }
-      
-      const formData = new FormData();
-      formData.append("config_file", file);
-      
-      // Show loading indicator
-      Swal.fire({
-        title: "Importing Configuration...",
-        text: "Please wait while the configuration is being imported.",
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-      
+      // Update sidebar project name
+      $('#sidebarProjectName').text(newTitle);
+      $(this).replaceWith('<h1 class="editable-title" id="projectTitle">' + newTitle + '</h1>');
+      // Send to backend to update project name
       $.ajax({
-        url: "/import_configuration",
+        url: "/update_project_name",
         type: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-          Swal.close();
-          if (response.status === "success") {
-            toastr.success(response.message);
-            // Reload the page to reflect imported data
-            window.location.reload();
-          } else {
-            toastr.error(response.message);
-            Swal.fire("Import Failed", response.message, "error");
-          }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          Swal.close();
-          toastr.error("Failed to import configuration: " + errorThrown);
-          Swal.fire("Import Failed", "An error occurred during import: " + errorThrown, "error");
-        },
-        complete: function() {
-          // Reset file input
-          $("#configFileInput").val("");
-        }
-      });
-    });
-    
-    // Switch Form Submission
-    $("#switchForm").on("submit", function(e) {
-      e.preventDefault();
-      
-      $.ajax({
-        url: "/submit_switch",
-        type: "POST",
-        data: $(this).serialize(),
+        data: { project_name: newTitle },
         success: function(response) {
           if (response.status === "success") {
             toastr.success(response.message);
-            
-            // Reset form and edit state
-            $("#switchForm")[0].reset();
-            $("#switchEditIndex").val("");
-            $("#submitSwitchBtn").text("Add Switch");
-            $("#cancelSwitchEditBtn").addClass("d-none");
-            
-            // Update switches table
-            updateSwitchesTable(response.all_entries);
-            
-            // Update switch dropdowns in other forms
-            updateSwitchDropdowns(response.all_entries);
-            
-            // Refresh JSON display
-            refreshJsonDisplay();
+            refreshJsonDisplay(); // Refresh JSON display after project name update
           } else {
             toastr.error(response.message);
           }
         },
         error: function() {
-          toastr.error("Failed to submit switch");
+          toastr.error("Failed to update project name");
         }
       });
     });
-    
-    // LAN Leaf Form Submission
-    $("#lanLeafForm").on("submit", function(e) {
-      e.preventDefault();
-      
-      // Set the hidden lan_name field based on the lan_number
-      const lanNumber = $("#lanNumber").val();
-      $("#lanName").val(`LAN_${lanNumber}`);
-      
-      $.ajax({
-        url: "/submit_lan_leaf",
-        type: "POST",
-        data: $(this).serialize(),
-        success: function(response) {
-          if (response.status === "success") {
-            toastr.success(response.message);
-            
-            // Reset form and edit state
-            $("#lanLeafForm")[0].reset();
-            $("#lanLeafEditIndex").val("");
-            $("#submitLanLeafBtn").text("Add LAN Leaf");
-            $("#cancelLanLeafEditBtn").addClass("d-none");
-            
-            // Update LAN leaves table
-            updateLanLeavesTable(response.all_entries);
-            
-            // Update LAN roles in compute form
-            updateLanRoles();
-            
-            // Get next LAN number
-            getNextLanNumber();
-            
-            // Refresh JSON display
-            refreshJsonDisplay();
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to submit LAN leaf");
-        }
-      });
+
+    // Refresh JSON button handler
+    $("#refreshJsonBtn").click(function() {
+      refreshJsonDisplay();
     });
-    
-    // LAN Spine Form Submission
-    $("#lanSpineForm").on("submit", function(e) {
-      e.preventDefault();
-      
-      // Set the hidden spine_name field based on the spine_number
-      const spineNumber = $("#spineNumber").val();
-      $("#spineName").val(`LAN_${spineNumber}_spines`);
-      
-      $.ajax({
-        url: "/submit_lan_spine",
-        type: "POST",
-        data: $(this).serialize(),
-        success: function(response) {
-          if (response.status === "success") {
-            toastr.success(response.message);
-            
-            // Reset form and edit state
-            $("#lanSpineForm")[0].reset();
-            $("#lanSpineEditIndex").val("");
-            $("#submitLanSpineBtn").text("Add LAN Spine");
-            $("#cancelLanSpineEditBtn").addClass("d-none");
-            
-            // Update LAN spines table
-            updateLanSpinesTable(response.all_entries);
-            
-            // Get next LAN number
-            getNextLanNumber();
-            
-            // Refresh JSON display
-            refreshJsonDisplay();
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to submit LAN spine");
-        }
-      });
-    });
-    
-    // Compute Form Submission
-    $("#computeForm").on("submit", function(e) {
-      e.preventDefault();
-      
-      $.ajax({
-        url: "/submit_compute",
-        type: "POST",
-        data: $(this).serialize(),
-        success: function(response) {
-          if (response.status === "success") {
-            toastr.success(response.message);
-            
-            // Reset form
-            $("#computeForm")[0].reset();
-            $("#computeEditIndex").val("");
-            $("#computeNodeName").val("");
-            $("#submitComputeBtn").text("Add Compute Node");
-            $("#cancelComputeEditBtn").addClass("d-none");
-            
-            // Update compute table
-            updateComputeTable(response.all_entries);
-            
-            // Refresh JSON display
-            refreshJsonDisplay();
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to submit compute node");
-        }
-      });
-    });
-    
-    // Storage Form Submission
-    $("#storageForm").on("submit", function(e) {
-      e.preventDefault();
-      
-      $.ajax({
-        url: "/submit_storage",
-        type: "POST",
-        data: $(this).serialize(),
-        success: function(response) {
-          if (response.status === "success") {
-            toastr.success(response.message);
-            
-            // Reset form
-            $("#storageForm")[0].reset();
-            
-            // Update storage table
-            updateStorageTable(response.all_entries);
-            
-            // Refresh JSON display
-            refreshJsonDisplay();
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to submit storage block");
-        }
-      });
-    });
-    
-    // Cable Form Submission
-    $("#cableForm").on("submit", function(e) {
-      e.preventDefault();
-      
-      const formData = $(this).serializeArray();
-      const editIndex = $("#cableEditIndex").val();
-      const editSwitchModel = $("#cableEditSwitchModel").val();
-      
-      // If editing, we need to include the original switch model
-      if (editIndex !== "" && editSwitchModel !== "") {
-        formData.push({name: "original_switch_model", value: editSwitchModel});
-      }
-      
-      $.ajax({
-        url: "/submit_cable",
-        type: "POST",
-        data: $.param(formData),
-        success: function(response) {
-          if (response.status === "success") {
-            toastr.success(response.message);
-            
-            // Reset form
-            $("#cableForm")[0].reset();
-            $("#cableEditSwitchModel").val("");
-            $("#cableEditIndex").val("");
-            $("#submitCableBtn").text("Add Cable");
-            
-            // Update cables table
-            updateCablesTable(response.all_entries);
-            
-            // Refresh JSON display
-            refreshJsonDisplay();
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to submit cable");
-        }
-      });
-    });
-    
-    // Rack Row Form Submission
-    $("#rackRowForm").on("submit", function(e) {
-      e.preventDefault();
-      
-      $.ajax({
-        url: "/submit_rack_row",
-        type: "POST",
-        data: $(this).serialize(),
-        success: function(response) {
-          if (response.status === "success") {
-            toastr.success(response.message);
-            
-            // Reset form
-            $("#rackRowForm")[0].reset();
-            $("#groupName").val("Group");
-            
-            // Update rack rows table
-            updateRackRowsTable(response.all_entries);
-            
-            // Refresh JSON display
-            refreshJsonDisplay();
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to submit rack row");
-        }
-      });
-    });
-    
-    // Edit Switch
-    $(document).on("click", ".edit-switch-btn", function(e) {
-      e.stopPropagation();
-      const index = $(this).data("index");
-      
-      $.ajax({
-        url: "/get_switch",
-        type: "GET",
-        data: { index: index },
-        success: function(response) {
-          if (response.status === "success") {
-            const entry = response.entry;
-            
-            // Fill form with entry data
-            $("#switchModel").val(entry.model);
-            $("#switchPorts").val(entry.ports);
-            $("#switchSpeed").val(entry.speed);
-            $("#switchHeight").val(entry.height);
-            $("#switchWattage").val(entry.wattage);
-            $("#switchWeight").val(entry.weight);
-            
-            if (entry.uplink_count !== undefined && entry.uplink_speed !== undefined) {
-              $("#uplinkCount").val(entry.uplink_count);
-              $("#uplinkSpeed").val(entry.uplink_speed);
-            } else {
-              $("#uplinkCount").val("");
-              $("#uplinkSpeed").val("");
-            }
-            
-            // Set edit index and update button text
-            $("#switchEditIndex").val(index);
-            $("#submitSwitchBtn").text("Update Switch");
-            $("#cancelSwitchEditBtn").removeClass("d-none");
-            
-            // Scroll to form
-            $("html, body").animate({
-              scrollTop: $("#switchForm").offset().top - 100
-            }, 200);
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to get switch data");
-        }
-      });
-    });
-    
-    // Edit LAN Leaf
-    $(document).on("click", ".edit-lan-leaf-btn, #lanLeavesTableBody .clickable-row", function(e) {
-      e.stopPropagation();
-      const index = $(this).data("index");
-      
-      // Only process if we"re in the LAN leaves tab
-      if (!$(this).closest("#lan_leaves").length) {
-        return;
-      }
-      
-      $.ajax({
-        url: "/get_lan_leaf",
-        type: "GET",
-        data: { index: index },
-        success: function(response) {
-          if (response.status === "success") {
-            const entry = response.entry;
-            const lanName = Object.keys(entry)[0];
-            const details = entry[lanName];
-            
-            // Extract LAN number
-            const lanNumber = lanName.split("_")[1];
-            
-            // Fill form with entry data
-            $("#lanNumber").val(lanNumber);
-            $("#lanName").val(lanName);
-            $("#lanRole").val(details.role);
-            $("#fixedQty").val(details.fixedqty);
-            $("#lanType").val(details.type);
-            $("#topology").val(details.topology);
-            
-            // Clear and set selected switches
-            $("#selectedSwitches").val(null).trigger("change");
-            $("#selectedSwitches").val(details.switches).trigger("change");
-            
-            // Set edit index and update button text
-            $("#lanLeafEditIndex").val(index);
-            $("#submitLanLeafBtn").text("Update LAN Leaf");
-            $("#cancelLanLeafEditBtn").removeClass("d-none");
-            
-            // Scroll to form
-            $("html, body").animate({
-              scrollTop: $("#lanLeafForm").offset().top - 100
-            }, 200);
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to get LAN leaf data");
-        }
-      });
-    });
-    
-    // Edit Cable button click handler
-    $(document).on("click", ".edit-cable-btn, #cablesTableBody .clickable-row", function(e) {
-      e.stopPropagation();
-      const switchModel = $(this).data("switch-model");
-      const cableIndex = $(this).data("cable-index");
-      
-      // Find the cable in the cables_entries
-      let cableEntry = null;
-      for (const entry of cables_entries) {
-        if (entry[switchModel] && entry[switchModel][cableIndex]) {
-          cableEntry = entry[switchModel][cableIndex];
-          break;
-        }
-      }
-      
-      if (cableEntry) {
-        // Fill the form with cable data
-        $("#cableSwitchModel").val(switchModel).trigger("change");
-        $("#cableModel").val(cableEntry.model);
-        $("#serverPortSpeed").val(cableEntry.server_port_speed);
-        $("#split").val(cableEntry.split);
-        $("#length").val(cableEntry.length);
-        
-        // Set edit state
-        $("#cableEditSwitchModel").val(switchModel);
-        $("#cableEditIndex").val(cableIndex);
-        $("#submitCableBtn").text("Update Cable");
-        
-        // Scroll to form
-        $("html, body").animate({
-          scrollTop: $("#cableForm").offset().top - 100
-        }, 200);
-      }
-    });
-    
-    // Delete Cable button click handler
-    $(document).on("click", ".delete-cable-btn", function(e) {
-      e.stopPropagation();
-      const switchModel = $(this).data("switch-model");
-      const cableIndex = $(this).data("cable-index");
-      
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This will delete this cable configuration. This action cannot be undone!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          $.ajax({
-            url: "/delete_cable",
-            type: "POST",
-            data: {
-              switch_model: switchModel,
-              cable_index: cableIndex
-            },
-            success: function(response) {
-              if (response.status === "success") {
-                toastr.success(response.message);
-                updateCablesTable(response.all_entries);
-                refreshJsonDisplay();
-              } else {
-                toastr.error(response.message);
-              }
-            },
-            error: function() {
-              toastr.error("Failed to delete cable");
-            }
-          });
-        }
-      });
-    });
-    
-    // Edit Compute Node
-    $(document).on("click", ".edit-compute-btn, #computeTableBody .clickable-row", function(e) {
-      e.stopPropagation();
-      const index = $(this).data("index");
-      const computeName = $(this).data("compute-name");
-      
-      // Only process if we're in the compute tab
-      if (!$(this).closest("#compute").length) {
-        return;
-      }
-      
-      $.ajax({
-        url: "/get_compute",
-        type: "GET",
-        data: { index: index },
-        success: function(response) {
-          if (response.status === "success") {
-            const entry = response.entry;
-            const computeName = Object.keys(entry)[0];
-            const details = entry[computeName];
-            
-            // Fill form with entry data
-            $("#computeName").val(computeName);
-            $("#count").val(details.count);
-            $("#wattage").val(details.wattage);
-            $("#height").val(details.height);
-            $("#weight").val(details.weight);
-            
-            // Store the compute node name for reference
-            $("#computeNodeName").val(computeName);
-            
-            // Clear LAN fields first
-            for (let i = 1; i <= 6; i++) {
-              $(`#lan_${i}_count`).val("");
-              $(`#lan_${i}_speed`).val("");
-            }
-            
-            // Fill LAN fields if present
-            for (let i = 1; i <= 6; i++) {
-              const lanKey = `LAN_${i}`;
-              if (details[lanKey]) {
-                $(`#lan_${i}_count`).val(details[lanKey].count);
-                $(`#lan_${i}_speed`).val(details[lanKey].speed);
-              }
-            }
-            
-            // Set edit index and update button text
-            $("#computeEditIndex").val(index);
-            $("#submitComputeBtn").text("Update Compute Node");
-            $("#cancelComputeEditBtn").removeClass("d-none");
-            
-            // Scroll to form
-            $("html, body").animate({
-              scrollTop: $("#computeForm").offset().top - 100
-            }, 200);
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to get compute node data");
-        }
-      });
-    });
-    
-    // Cancel Compute Edit
-    $("#cancelComputeEditBtn").on("click", function() {
-      $("#computeForm")[0].reset();
-      $("#computeEditIndex").val("");
-      $("#computeNodeName").val("");
-      $("#submitComputeBtn").text("Add Compute Node");
-      $(this).addClass("d-none");
-    });
-    
-    // Edit LAN Spine
-    $(document).on("click", ".edit-lan-spine-btn, #lanSpinesTableBody .clickable-row", function(e) {
-      e.stopPropagation();
-      const index = $(this).data("index");
-      
-      // Only process if we"re in the LAN spines tab
-      if (!$(this).closest("#lan_spines").length) {
-        return;
-      }
-      
-      $.ajax({
-        url: "/get_lan_spine",
-        type: "GET",
-        data: { index: index },
-        success: function(response) {
-          if (response.status === "success") {
-            const entry = response.entry;
-            const spineName = Object.keys(entry)[0];
-            const details = entry[spineName];
-            
-            // Extract LAN number
-            const spineNumber = spineName.split("_")[1];
-            
-            // Fill form with entry data
-            $("#spineNumber").val(spineNumber);
-            $("#spineName").val(spineName);
-            $("#spineRole").val(details.role);
-            $("#spineFixedQty").val(details.fixedqty);
-            $("#spineType").val(details.type);
-            $("#spineTopology").val(details.topology);
-            
-            // Clear and set selected switches
-            $("#selectedSwitchesSpine").val(null).trigger("change");
-            $("#selectedSwitchesSpine").val(details.switches).trigger("change");
-            
-            // Set edit index and update button text
-            $("#lanSpineEditIndex").val(index);
-            $("#submitLanSpineBtn").text("Update LAN Spine");
-            $("#cancelLanSpineEditBtn").removeClass("d-none");
-            
-            // Scroll to form
-            $("html, body").animate({
-              scrollTop: $("#lanSpineForm").offset().top - 100
-            }, 200);
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to get LAN spine data");
-        }
-      });
-    });
-    
-    // Cancel Switch Edit
-    $("#cancelSwitchEditBtn").on("click", function() {
-      $("#switchForm")[0].reset();
-      $("#switchEditIndex").val("");
-      $("#submitSwitchBtn").text("Add Switch");
-      $(this).addClass("d-none");
-    });
-    
-    // Cancel LAN Leaf Edit
-    $("#cancelLanLeafEditBtn").on("click", function() {
-      $("#lanLeafForm")[0].reset();
-      $("#lanLeafEditIndex").val("");
-      $("#submitLanLeafBtn").text("Add LAN Leaf");
-      $(this).addClass("d-none");
-      
-      // Get next LAN number
-      getNextLanNumber();
-    });
-    
-    // Cancel LAN Spine Edit
-    $("#cancelLanSpineEditBtn").on("click", function() {
-      $("#lanSpineForm")[0].reset();
-      $("#lanSpineEditIndex").val("");
-      $("#submitLanSpineBtn").text("Add LAN Spine");
-      $(this).addClass("d-none");
-      
-      // Get next LAN number
-      getNextLanNumber();
-    });
-    
-    // View LAN Details
-    $(document).on("click", ".view-lan-details-btn", function() {
-      const computeName = $(this).data("compute");
-      const details = $(this).data("details");
-      
-      // Clear table
-      $("#lanDetailsTableBody").empty();
-      
-      // Add rows for each LAN
-      for (let i = 1; i <= 6; i++) {
-        const lanKey = `LAN_${i}`;
-        if (details[lanKey]) {
-          const lanData = details[lanKey];
-          const role = $(`#lan_${i}_role_badge`).text().trim();
-          
-          $("#lanDetailsTableBody").append(`
-            <tr>
-              <td>${lanKey}</td>
-              <td>${role}</td>
-              <td>${lanData.count}</td>
-              <td>${lanData.speed}</td>
-            </tr>
-          `);
-        }
-      }
-      
-      // Set modal title
-      $(".modal-title").text(`LAN Details for ${computeName}`);
-      
-      // Show modal
-      $("#lanDetailsModal").modal("show");
-    });
-    
-    // View Switch Details
-    $(document).on("click", ".view-switches-btn", function(e) {
-      e.stopPropagation();
-      const switches = $(this).data("switches").split(", ");
-      const lanName = $(this).data("lan");
-      
-      // Clear table
-      $("#switchDetailsTableBody").empty();
-      
-      // Add rows for each switch
-      switches.forEach(switchModel => {
-        $("#switchDetailsTableBody").append(`
-          <tr>
-            <td>${switchModel}</td>
-          </tr>
-        `);
-      });
-      
-      // Set LAN name
-      $("#switchDetailsLanName").text(`Switches for ${lanName}`);
-      
-      // Show modal
-      $("#switchDetailsModal").modal("show");
-    });
-    
-    // Clear buttons
-    $("#clearSwitchesBtn").on("click", function() {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This will clear all switches. This action cannot be undone!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, clear all!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          clearEntries("switches");
-        }
-      });
-    });
-    
-    $("#clearLanLeavesBtn").on("click", function() {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This will clear all LAN leaves. This action cannot be undone!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, clear all!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          clearEntries("lan_leaves");
-        }
-      });
-    });
-    
-    $("#clearLanSpinesBtn").on("click", function() {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This will clear all LAN spines. This action cannot be undone!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, clear all!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          clearEntries("lan_spines");
-        }
-      });
-    });
-    
-    $("#clearComputeBtn").on("click", function() {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This will clear all compute nodes. This action cannot be undone!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, clear all!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          clearEntries("compute");
-        }
-      });
-    });
-    
-    $("#clearStorageBtn").on("click", function() {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This will clear all storage blocks. This action cannot be undone!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, clear all!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          clearEntries("storage");
-        }
-      });
-    });
-    
-    $("#clearCablesBtn").on("click", function() {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This will clear all cables. This action cannot be undone!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, clear all!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          clearEntries("cables");
-        }
-      });
-    });
-    
-    $("#clearRackRowsBtn").on("click", function() {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This will clear all rack rows. This action cannot be undone!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, clear all!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          clearEntries("rack_rows");
-        }
-      });
-    });
-    
-    // Copy JSON button
-    $("#copyJsonBtn").on("click", function() {
-      const jsonText = $("#allJsonDisplay").text();
-      
-      // Create temporary textarea element
-      const textarea = document.createElement("textarea");
-      textarea.value = jsonText;
-      document.body.appendChild(textarea);
-      
-      // Select and copy text
-      textarea.select();
-      document.execCommand("copy");
-      
-      // Remove temporary element
-      document.body.removeChild(textarea);
-      
-      // Show success message
-      toastr.success("JSON copied to clipboard");
-    });
-    
-    // Download JSON button
-    $("#downloadJsonBtn").on("click", function() {
-      $.ajax({
-        url: "/export_configuration",
-        type: "GET",
-        success: function(response) {
-          if (response.status === "success") {
-            // Create blob from JSON
-            const blob = new Blob([response.config], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            
-            // Create temporary link and click it
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = response.filename;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Clean up
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            toastr.success(response.message);
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to export configuration");
-        }
-      });
-    });
-    
-    // Function to update switches table
-    function updateSwitchesTable(entries) {
-      const tableBody = $("#switchesTableBody");
-      tableBody.empty();
-      
-      entries.forEach((entry, index) => {
-        tableBody.append(`
-          <tr class="clickable-row" data-index="${index}">
-            <td>${entry.model}</td>
-            <td>${entry.ports}</td>
-            <td>${entry.speed}</td>
-            <td>${entry.height}</td>
-            <td>${entry.wattage}</td>
-            <td>${entry.weight}</td>
-            <td>
-              ${entry.uplink_count !== undefined && entry.uplink_speed !== undefined
-                ? `${entry.uplink_count} x ${entry.uplink_speed} Gbps`
-                : "N/A"}
-            </td>
-            <td>
-              <button class="btn btn-sm btn-info edit-switch-btn" data-index="${index}">Edit</button>
-            </td>
-          </tr>
-        `);
-      });
-    }
-    
-    // Function to update LAN leaves table
-    function updateLanLeavesTable(entries) {
-      const tableBody = $("#lanLeavesTableBody");
-      tableBody.empty();
-      
-      entries.forEach((entry, index) => {
-        const lanName = Object.keys(entry)[0];
-        const details = entry[lanName];
-        
-        tableBody.append(`
-          <tr class="clickable-row" data-index="${index}">
-            <td>${lanName}</td>
-            <td>${details.role}</td>
-            <td>${details.fixedqty}</td>
-            <td>${details.type}</td>
-            <td>${details.topology}</td>
-            <td>
-              ${details.switches.join(", ")}
-              <button class="btn btn-xs btn-info view-switches-btn" 
-                      data-switches="${details.switches.join(", ")}"
-                      data-lan="${lanName}">
-                View Switches
-              </button>
-            </td>
-            <td>
-              <button class="btn btn-sm btn-info edit-lan-leaf-btn" data-index="${index}">Edit</button>
-            </td>
-          </tr>
-        `);
-      });
-    }
-    
-    // Function to update LAN spines table
-    function updateLanSpinesTable(entries) {
-      const tableBody = $("#lanSpinesTableBody");
-      tableBody.empty();
-      
-      entries.forEach((entry, index) => {
-        const spineName = Object.keys(entry)[0];
-        const details = entry[spineName];
-        
-        tableBody.append(`
-          <tr class="clickable-row" data-index="${index}">
-            <td>${spineName}</td>
-            <td>${details.role}</td>
-            <td>${details.fixedqty}</td>
-            <td>${details.type}</td>
-            <td>${details.topology}</td>
-            <td>
-              ${details.switches.join(", ")}
-              <button class="btn btn-xs btn-info view-switches-btn" 
-                      data-switches="${details.switches.join(", ")}"
-                      data-lan="${spineName}">
-                View Switches
-              </button>
-            </td>
-            <td>
-              <button class="btn btn-sm btn-info edit-lan-spine-btn" data-index="${index}">Edit</button>
-            </td>
-          </tr>
-        `);
-      });
-    }
-    
-    // Function to update compute table
-    function updateComputeTable(entries) {
-      const tableBody = $("#computeTableBody");
-      tableBody.empty();
-      
-      entries.forEach((entry, index) => {
-        const name = Object.keys(entry)[0];
-        const details = entry[name];
-        
-        tableBody.append(`
-          <tr class="clickable-row" data-index="${index}" data-compute-name="${name}">
-            <td>${name}</td>
-            <td>${details.count}</td>
-            <td>${details.wattage}</td>
-            <td>${details.height}</td>
-            <td>${details.weight}</td>
-            <td>
-              <button class="btn btn-xs btn-info view-lan-details-btn" 
-                      data-compute="${name}"
-                      data-details=\'${JSON.stringify(details)}\'>
-                View LAN Details
-              </button>
-            </td>
-            <td>
-              <button class="btn btn-sm btn-info edit-compute-btn" data-index="${index}" data-compute-name="${name}">Edit</button>
-            </td>
-          </tr>
-        `);
-      });
-    }
-    
-    // Function to update storage table
-    function updateStorageTable(entries) {
-      const tableBody = $("#storageTableBody");
-      tableBody.empty();
-      
-      entries.forEach((entry) => {
-        const name = Object.keys(entry)[0];
-        const details = entry[name];
-        
-        tableBody.append(`
-          <tr>
-            <td>${name}</td>
-            <td>${details.count}</td>
-            <td>${details.capacity}</td>
-            <td>${details.type}</td>
-            <td>${details.wattage}</td>
-            <td>${details.height}</td>
-            <td>${details.weight}</td>
-          </tr>
-        `);
-      });
-    }
-    
-    // Function to update cables table
-    function updateCablesTable(entries) {
-      const tableBody = $("#cablesTableBody");
-      tableBody.empty();
-      
-      entries.forEach((entry) => {
-        const switchModel = Object.keys(entry)[0];
-        const cables = entry[switchModel];
-        
-        cables.forEach((cable, index) => {
-          tableBody.append(`
-            <tr class="clickable-row" data-switch-model="${switchModel}" data-cable-index="${index}">
-              <td>${switchModel}</td>
-              <td>${cable.model}</td>
-              <td>${cable.server_port_speed}</td>
-              <td>${cable.split}</td>
-              <td>${cable.length}</td>
-              <td>
-                <button class="btn btn-sm btn-info edit-cable-btn" 
-                        data-switch-model="${switchModel}" 
-                        data-cable-index="${index}">Edit</button>
-                <button class="btn btn-sm btn-danger delete-cable-btn" 
-                        data-switch-model="${switchModel}" 
-                        data-cable-index="${index}">Delete</button>
-              </td>
-            </tr>
-          `);
-        });
-      });
-    }
-    
-    // Function to update rack rows table
-    function updateRackRowsTable(entries) {
-      const tableBody = $("#rackRowsTableBody");
-      tableBody.empty();
-      
-      entries.forEach((entry) => {
-        const groupName = Object.keys(entry)[0];
-        const details = entry[groupName];
-        
-        tableBody.append(`
-          <tr>
-            <td>${groupName}</td>
-            <td>${details.Racks}</td>
-            <td>${details.group_count}</td>
-            <td>${details.rack_to_rack}</td>
-            <td>${details.Row_to_next_row}</td>
-          </tr>
-        `);
-      });
-    }
-    
-    // Function to update switch dropdowns in other forms
-    function updateSwitchDropdowns(switches) {
-      // Clear and rebuild switch dropdowns
-      $("#selectedSwitches, #selectedSwitchesSpine, #cableSwitchModel").empty();
-      
-      // Add empty option to cableSwitchModel dropdown
-      $("#cableSwitchModel").append("<option value=\"\">Select Switch Model</option>");
-      
-      // Add options for each switch
-      switches.forEach((switchItem) => {
-        const optionText = `${switchItem.model} (${switchItem.ports} ports, ${switchItem.speed} Gbps)`;
-        
-        $("#selectedSwitches, #selectedSwitchesSpine").append(
-          `<option value="${switchItem.model}">${optionText}</option>`
-        );
-        
-        $("#cableSwitchModel").append(
-          `<option value="${switchItem.model}">${optionText}</option>`
-        );
-      });
-      
-      // Refresh Select2 instances
-      $("#selectedSwitches, #selectedSwitchesSpine").trigger("change");
-    }
-    
-    // Function to clear entries
-    function clearEntries(category) {
-      $.ajax({
-        url: "/clear_entries",
-        type: "POST",
-        data: { category: category },
-        success: function(response) {
-          if (response.status === "success") {
-            toastr.success(response.message);
-            
-            // Clear corresponding table
-            switch (category) {
-              case "switches":
-                $("#switchesTableBody").empty();
-                updateSwitchDropdowns([]);
-                break;
-              case "lan_leaves":
-                $("#lanLeavesTableBody").empty();
-                updateLanRoles();
-                break;
-              case "lan_spines":
-                $("#lanSpinesTableBody").empty();
-                break;
-              case "compute":
-                $("#computeTableBody").empty();
-                break;
-              case "storage":
-                $("#storageTableBody").empty();
-                break;
-              case "cables":
-                $("#cablesTableBody").empty();
-                break;
-              case "rack_rows":
-                $("#rackRowsTableBody").empty();
-                break;
-              case "all":
-                $("#switchesTableBody, #lanLeavesTableBody, #lanSpinesTableBody, #computeTableBody, #storageTableBody, #cablesTableBody, #rackRowsTableBody").empty();
-                updateSwitchDropdowns([]);
-                updateLanRoles();
-                break;
-            }
-            
-            // Refresh JSON display
-            refreshJsonDisplay();
-          } else {
-            toastr.error(response.message);
-          }
-        },
-        error: function() {
-          toastr.error("Failed to clear entries");
-        }
-      });
-    }
-    
+
     // Function to refresh JSON display
     function refreshJsonDisplay() {
       $.ajax({
-        url: "/get_all_entries",
+        url: "/get_current_config", // The endpoint being called
         type: "GET",
         success: function(response) {
-          // Format JSON with indentation
-          const formattedJson = JSON.stringify(response, null, 2);
-          
-          // Update all JSON display
-          $("#allJsonDisplay").text(formattedJson);
-          
-          // Update individual category JSON displays
-          $("#switchesJsonDisplay").text(JSON.stringify(response.switches, null, 2));
-          $("#lanLeavesJsonDisplay").text(JSON.stringify(response.lan_leaves, null, 2));
-          $("#lanSpinesJsonDisplay").text(JSON.stringify(response.lan_spines, null, 2));
-          $("#computeJsonDisplay").text(JSON.stringify(response.compute_nodes, null, 2));
-          $("#storageJsonDisplay").text(JSON.stringify(response.storage_blocks, null, 2));
-          $("#cablesJsonDisplay").text(JSON.stringify(response.cables, null, 2));
-          $("#rackRowsJsonDisplay").text(JSON.stringify(response.rack_rows, null, 2));
+          if (response.status === "success") {
+            $("#jsonOutput").text(JSON.stringify(response.config, null, 2));
+            toastr.success(response.message);
+          } else {
+            toastr.error(response.message);
+          }
         },
         error: function() {
-          toastr.error("Failed to refresh JSON display");
+          console.error("Failed to get current configuration");
+          toastr.error("Failed to refresh JSON display"); // The error message
         }
       });
     }
-    
-    // Function to update LAN roles in compute form
+
+    // Function to update LAN roles dynamically
     function updateLanRoles() {
       $.ajax({
         url: "/get_lan_roles",
         type: "GET",
         success: function(response) {
           if (response.status === "success") {
-            const lanRoles = response.lan_roles;
-            
-            // Update role badges in compute form
             for (let i = 1; i <= 6; i++) {
-              const lanName = `LAN_${i}`;
-              const role = lanRoles[lanName] || "";
+              let role = response.lan_roles[`LAN_${i}`] || "N/A";
               $(`#lan_${i}_role_badge`).text(role);
             }
           }
@@ -2422,9 +1167,5 @@
 <script src="{{ url_for('static', filename='js/row_click_handler.js') }}"></script>
 <script src="{{ url_for('static', filename='js/switch_handler.js') }}"></script>
 <script src="{{ url_for('static', filename='js/compute_handler.js') }}"></script>
-		<script> 
-			var rack_rows_entries = {{ rack_rows_entries | tojson | safe }};
-			var cables_entries = {{ cables_entries | tojson | safe }};
-		</script>
 </body>
 </html>
