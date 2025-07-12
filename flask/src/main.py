@@ -11,8 +11,10 @@ app = Flask(__name__)
 # Register blueprints
 from routes.upload import upload_bp
 from routes.delete import delete_bp
+from routes.gen_llm import gen_llm_bp
 app.register_blueprint(upload_bp)
 app.register_blueprint(delete_bp)
+app.register_blueprint(gen_llm_bp)
 
 # Initialize data structures
 switches = []
