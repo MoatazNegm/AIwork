@@ -8,7 +8,7 @@
 
 # %%
 # #!pip install langgraph
-# #!pip3  install torch torchvision torchaudio transformers
+# #!pip3 install torch torchvision torchaudio transformers
 # #!pip3 install packaging ninja
 # #!pip3 install accelerate
 # #!pip3 install protobuf
@@ -17,7 +17,7 @@
 # #!pip3 install scipy
 
 import torch, os
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, LlamaTokenizer, LlamaForCausalLM, MistralForCausalLM
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import random, json
 import inspect
 import json, re
@@ -26,18 +26,20 @@ from typing import Dict, Any, Optional, Callable, List
 class Agent:
     def __init__(self, model_name='Qwen/Qwen2.5-Coder-7B-Instruct',
                 agent_name='dummy_model', message='', asis=1, tools=[]):
-        # Load Qwen model and tokenizer            
-        max_length=8500  # Total tokens (input + output)
-        max_new_tokens=500  # Limit output tokens
+        
         self.tools = dict()
         self.schema_tools = []
         self.instruct_history = 10
         self.max_iterations = 10
         self.iterations = 0
-    
-
+        self.max_new_tokens = 500
+        self.agent_name = agent_name
+        self.model_name = model_name
+        
+        # Initialize tools
         self.initTools(tools)
         
+        # Determine save directory and precision
         if asis == 1:
             save_directory = '../'+model_name.replace('/','_')+'_saved_quality'
             torchfloat = torch.bfloat16
@@ -45,142 +47,91 @@ class Agent:
             save_directory = '../'+model_name.replace('/','_')+'_saved_response'
             torchfloat = torch.float16
         
+        # Set up quantization config
+        if asis == 1:
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+                bnb_4bit_use_double_quant=True,
+            )
+        else:
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4",  # Fixed typo from original
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_quant_storage=torch.uint8,
+                use_nested_quant=True,
+            )
+        
+        # Try to load from local directory first
         try:
+            print('Trying to load the model:', save_directory, 'from local repo')
             
-            print('Trying to load the mode:',save_directory,'from local repo')
-            self.model = AutoModelForCausalLM.from_pretrained(save_directory)
-            self.tokenizer = AutoTokenizer.from_pretrained(save_directory)
-            print("the requested mode:",model_name,"is loaded")
+            # Create pipeline from local model
+            self.pipeline = pipeline(
+                "text-generation",
+                model=save_directory,
+                tokenizer=save_directory,
+                device_map="auto",
+                torch_dtype=torchfloat,
+                trust_remote_code=True
+            )
+            print("The requested model:", model_name, "is loaded from local")
+            
         except:
-            print('The model:',model_name,'is not found locally, downloading it')
-            if asis == 1:
-                bnb_config = BitsAndBytesConfig(
-                    load_in_4bit=True,  # Enable 4-bit quantization with careful settings
-                    bnb_4bit_quant_type="nf4",  # Normalized float 4 quantization
-                    bnb_4bit_compute_dtype=torch.bfloat16,  # More stable computation dtype
-                    bnb_4bit_use_double_quant=True,  # Enable double quantization for better compression
-                )
-                # Convert BitsAndBytesConfig to a dictionary for saving
-                quantization_config_dict = {
-                    "load_in_4bit": bnb_config.load_in_4bit,
-                    "bnb_4bit_quant_type": bnb_config.bnb_4bit_quant_type,
-                    "bnb_4bit_compute_dtype": str(bnb_config.bnb_4bit_compute_dtype),
-                    "bnb_4bit_use_double_quant": bnb_config.bnb_4bit_use_double_quant
-                }
-            else:
-                bnb_config = BitsAndBytesConfig(
-                    torch_dtype="auto",
-                    device_map="auto",
-                    load_in_4bit=True,
-                    bnb_4bit_use_double_quant=True,
-                    bnb_4bit_quantw_type="nf4",
-                    bnb_4bit_compute_dtype=torch.float16,  # Changed from bfloat16 to float16
-                    bnb_4bit_quant_storage=torch.uint8,    # Added for storage optimization
-                    use_nested_quant=True,                 # Added for nested quantization
-                )
-            self.model = AutoModelForCausalLM.from_pretrained(
-                model_name, quantization_config=bnb_config, token="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"
-            ).to("cuda")
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name, token="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")
+            print('The model:', model_name, 'is not found locally, downloading it')
             
-            print("Saving the model:",model_name," locally")
-            self.tokenizer.save_pretrained(save_directory)
-            print("the requested mode:",model_name,"is loaded")
+            # Create pipeline with quantization
+            self.pipeline = pipeline(
+                "text-generation",
+                model=model_name,
+                #model_kwargs={
+                #    "quantization_config": bnb_config,
+                #},
+                token="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",
+                device_map="auto",
+                torch_dtype=torchfloat,
+                trust_remote_code=True
+            )
             
+            # Save model locally for future use
+            print("Saving the model:", model_name, "locally")
+            self.pipeline.model.save_pretrained(save_directory)
+            self.pipeline.tokenizer.save_pretrained(save_directory)
+            print("The requested model:", model_name, "is loaded and saved")
+        
+        # Set up pad token if needed
+        if self.pipeline.tokenizer.pad_token is None:
+            self.pipeline.tokenizer.add_special_tokens({'pad_token': '|PAD|'})
+               
+        # Initialize messages
         self.response = ""  
-        self.agent_name = agent_name
-        self.model_name = model_name
         if not message:
             message = "You are a helpful AI assistant. Maintain context and be concise.\n\n"
-        self.messages = [message]
-        self.message = message
-        if 'nstruct' in model_name:
-                self.messages = [dict({"role": "system", "content": message})]
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.add_special_tokens({'pad_token': '|PAD|'})
-               
-    def old_get_tool_schema(self,func: Callable) -> dict:
-        """
-        Generate a JSON schema for a tool function.
-
-        Args:
-            func (Callable): The function to generate a schema for.
-
-        Returns:
-            dict: A JSON schema representing the function's parameters.
-        """
-        import inspect
-        signature = inspect.signature(func)
-        parameters = {}
-
-        for name, param in signature.parameters.items():
-            parameters[name] = {
-                "type": "string",  # Assume string type for simplicity
-                "description": f"Parameter {name}"
-            }
-
-        return {
-            "type": "function",
-            "function": {
-                "name": func.__name__,
-                "description": func.__doc__.split('\n')[0] if func.__doc__ else "",
-                "parameters": {
-                    "type": "object",
-                    "properties": parameters
-                }
-            }
-        }
         
-    def initTools(self,tools=0):
+        if 'nstruct' in model_name:
+            self.messages = [{"role": "system", "content": message}]
+        else:
+            self.messages = [message]
+        self.message = message
+
+    def initTools(self, tools=0):
         self.schema_tools = []
         for tool in tools:
             self.tools[tool.__name__] = tool
         for tool in self.tools:
             self.schema_tools.append(self.get_tool_schema(self.tools[tool]))
 
-              
-    def create_system_prompt(self,prompt, extras=[]):
-            if 'nstruct'in self.model_name:
-                result = self.instruct_create_system_prompt(prompt)
-                
-                return result
-            else:
-                return self.llm_create_system_prompt(prompt)
-
-    def instruct_create_system_prompt(self,prompt, extras=[]):  ### for instruct models
-        if self.iterations > 0:
-            return self.messages
-        self.messages = [self.messages[0]]
-        self.messages.append(dict({
-            "role": "user", 
-            "content": prompt
-        }))
-        
-        return self.messages
-            
-    def llm_create_system_prompt(self,prompt):
-        self.messages = [self.messages[0]]
-        self.messages.append(prompt)
-        return '\n'.join(self.messages)
-    
-        
-    def get_tool_schema(self,func: Callable) -> dict:
-        """
-        Generate a JSON schema for a tool function.
-
-        Args:
-            func (Callable): The function to generate a schema for.
-
-        Returns:
-            dict: A JSON schema representing the function's parameters.
-        """
-        import inspect
+    def get_tool_schema(self, func: Callable) -> dict:
+        """Generate a JSON schema for a tool function."""
         signature = inspect.signature(func)
         parameters = {}
 
         for name, param in signature.parameters.items():
             parameters[name] = {
-                "type": "string",  # Assume string type for simplicity
+                "type": "string",
                 "description": f"Parameter {name}"
             }
 
@@ -195,143 +146,135 @@ class Agent:
                 }
             }
         }
-    def generate_response(self,prompt, print_result='no'):
+
+    def create_system_prompt(self, prompt, extras=[]):
         if 'nstruct' in self.model_name:
-            result = self.instruct_generate_response(prompt)
-            if print_result == 'yes':
-                print(result)
-            return result
+            return self.instruct_create_system_prompt(prompt)
         else:
-            result = self.llm_generate_response(prompt)
-            if print_result == 'yes':
-                print(result)
-            return result
+            return self.llm_create_system_prompt(prompt)
+
+    def instruct_create_system_prompt(self, prompt, extras=[]):
+        if self.iterations > 0:
+            return self.messages
+        self.messages = [self.messages[0]]
+        self.messages.append({
+            "role": "user", 
+            "content": prompt
+        })
+        return self.messages
+            
+    def llm_create_system_prompt(self, prompt):
+        self.messages = [self.messages[0]]
+        self.messages.append(prompt)
+        return '\n'.join(self.messages)
+
+    def generate_response(self, prompt, print_result='no'):
+        if 'nstruct' in self.model_name:
+            result = self.instruct_generate_response_pipeline(prompt)
+        else:
+            result = self.llm_generate_response_pipeline(prompt)
         
+        if print_result == 'yes':
+            print(result)
+        return result
+
+    def instruct_generate_response_pipeline(self, prompt):
+        """Generate response using pipeline for instruct models with tool support."""
         
-    def instruct_generate_response(self,prompt):  #### given we are using instruct model and it is  tools compatible (if tools are stated)
-        
-        # Generate response
         if self.iterations > 0:
             messages = prompt
         else:
-            messages =  self.create_system_prompt(prompt)
-        text = self.tokenizer.apply_chat_template(
+            messages = self.create_system_prompt(prompt)
+        
+        # For models with tool support, we might need to format manually
+        # or use the pipeline's chat template
+        if hasattr(self.pipeline.tokenizer, 'apply_chat_template') and self.tools:
+            # Use chat template with tools
+            formatted_prompt = self.pipeline.tokenizer.apply_chat_template(
                 messages,
-                tools= list(self.tools.values()),
-                tokenize=True,
-                add_generation_prompt=True,
-                return_tensors="pt",
-                return_dict = True,
-                return_attention_mask=True
-            ).to("cuda")
-        #print('tools values',self.tools)
-        #print('the text submitted:',text)
-        # Generate response
-        inputs = text
-        #inputs = self.tokenizer(text, return_tensors="pt",  return_attention_mask=True).to(self.model.device)
+                tools=list(self.tools.values()) if self.tools else None,
+                tokenize=False,
+                add_generation_prompt=True
+            )
+        else:
+            # Fallback to simple formatting
+            formatted_prompt = self.pipeline.tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True
+            ) if hasattr(self.pipeline.tokenizer, 'apply_chat_template') else str(messages)
+
+        # Generate using pipeline
+        outputs = self.pipeline(
+            formatted_prompt,
+            max_new_tokens=self.max_new_tokens,
+            temperature=0.1,
+            do_sample=True,
+            return_full_text=False,  # Only return generated text
+            pad_token_id=self.pipeline.tokenizer.eos_token_id
+        )
         
-        generated_ids = self.model.generate(
-            input_ids=inputs["input_ids"],
-            #inputs,
-            attention_mask=inputs["attention_mask"],
-            max_new_tokens=384,
-            temperature = 0.1,
-            #pad_token_id=self.model.config.eos_token_id
-        ).to("cuda")
-    
-        # Decode response
-        response = self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+        # Extract the generated text
+        if isinstance(outputs, list) and len(outputs) > 0:
+            generated_text = outputs[0].get('generated_text', '')
+        else:
+            generated_text = str(outputs)
         
-        response = response.replace('ssistant:','ssistant')
-        response = response.replace('Assistant','assistant\n\n')
-        response = response.replace('ssistant\n','ssistant\n\n').replace('ssistant\n\n\n','ssistant\n\n')
-        #print('------------------------------------------------------')
-        #text = self.tokenizer.apply_chat_template(
-        #        messages,
-        #        tools= list(self.tools.values()),
-        #        tokenize=False,
-        #        add_generation_prompt=True,
-        #        return_tensors="pt",
-        #        #return_dict = True,
-        #        return_attention_mask=True
-        #    )
-        #print('text is ',text)
-        #print('*******************************************')
-        #print('response is:', self.tokenizer.decode(generated_ids[0][len(inputs["input_ids"][0])-60:]),'\niterations',self.iterations)
-        #print('*******************************************')
-        #print('------------------------------------------------------')
-        #cleaned_response = response.split('ssistant\n\n')[-1].split("User\n\n")[0].split("user\n\n")[0]
-        cleaned_response = self.tokenizer.decode(generated_ids[0][len(inputs["input_ids"][0]):], skip_special_tokens=True)
-        
-        jsons, _ = json_data_list, text_parts = self.extract_all_json(cleaned_response)
+        # Process tool calls if present
+        jsons, _ = self.extract_all_json(generated_text)
         if len(jsons) > 0 and self.iterations < self.max_iterations:
-            mod_tool_call = {}
-            mod_tool_calls = []
-            tool_calls = []
-            
             for json_data in jsons:
-                #print('tool_call',json_data)
-                
-                #json_result = globals().get(json_data['name'])(**json_data['parameters'])
                 try:
-                    print('querying my tool', json_data['name'])
-                    mod_tool_call['name'] = json_data['name']
-                    mod_tool_call['arguments'] = json_data['parameters']
+                    print('Querying tool:', json_data['name'])
                     json_result = self.tools[json_data['name']](**json_data['parameters'])
                     tool_call = {"name": json_data['name'], "arguments": {**json_data['parameters']}}
+                    
                     messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
                     messages.append({"role": "tool", "name": json_data['name'], "content": json_result})
-                    messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
-                    messages.append({"role": "tool", "name": json_data['name'], "content": json_result})
+                    
                     self.iterations += 1
-                    #print('response is:',response)
-                    return self.instruct_generate_response(messages)
-                    #tool_calls.append({"type": "function", "function": mod_tool_call})
-    
-                    #mod_tool_calls.append({"role": "ipython", "name": json_data['name'], "content": json_result})
-                except:
+                    return self.instruct_generate_response_pipeline(messages)
+                except Exception as e:
+                    print(f'Tool call failed: {e}')
                     self.iterations = 0
-                    print('It is not a valid tool:',cleaned_response,'not a valid tool')
+                    break
             
-            #self.messages.append({"role": "assistant", "content": tool_calls})
-            #for tool in mod_tool_calls:
-            #    self.messages.append(tool)
-            
-            self.iterations = 0
-            self.reset()
-            #print('resubmit the prompt for iteration',self.iterations)
-            #return self.generate_response(prompt)
+        self.iterations = 0
+        self.reset()
+        self.response = generated_text
+        return generated_text
+
+    def llm_generate_response_pipeline(self, prompt):
+        """Generate response using pipeline for non-instruct models."""
+        messages = self.create_system_prompt(prompt)
+        
+        # Generate using pipeline
+        outputs = self.pipeline(
+            messages,
+            max_new_tokens=100,
+            temperature=0.7,
+            top_p=0.9,
+            do_sample=True,
+            return_full_text=False,
+            pad_token_id=self.pipeline.tokenizer.eos_token_id
+        )
+        
+        # Extract the generated text
+        if isinstance(outputs, list) and len(outputs) > 0:
+            generated_text = outputs[0].get('generated_text', '')
         else:
+            generated_text = str(outputs)
             
-                self.iterations = 0
-                self.reset()
-            
-                
-                
-                #tool_call = {"name": "list_files", "arguments": {"location": "Paris, France"}}
-                #messages.append({"role": "assistant", "tool_calls": [{"type": "function", "function": tool_call}]})
-        #print('all ended with the messages',self.messages)
-        #print('-------------------------------------------------------------------------------------------------')
-        self.response = cleaned_response
-        return cleaned_response
-    
-    def extract_all_json(self,text):
-        """
-        Extracts all valid JSON objects from a string.
+        return generated_text.strip()
 
-        Args:
-            text: The string to search for JSON.
-
-        Returns:
-            A list of Python dictionaries (the parsed JSON objects) and the text parts before, between and after the jsons.
-            Returns an empty list if no valid JSON is found.
-        """
+    def extract_all_json(self, text):
+        """Extract all valid JSON objects from a string."""
         json_objects = []
         text_parts = []
         try:
-            matches =   list(re.finditer(r"\{(?:[^{}]|{[^{}]*})*\}", text)) # Use finditer for indices
+            matches = list(re.finditer(r"\{(?:[^{}]|{[^{}]*})*\}", text))
             if not matches:
-                return [], [text.strip()]  # No JSON found
+                return [], [text.strip()]
 
             last_end = 0
             for match in matches:
@@ -342,48 +285,49 @@ class Agent:
                     text_parts.append(text[last_end:match.start()].strip())
                     last_end = match.end()
                 except json.JSONDecodeError:
-                    pass  # Ignore invalid JSON
-            text_parts.append(text[last_end:].strip()) #add the last part of the text
+                    pass
+            text_parts.append(text[last_end:].strip())
 
             return json_objects, text_parts
 
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
             return [], [text.strip()]
-    
-    def reset(self,message=''):
+
+    def reset(self, message=''):
         if len(message) == 0:
             self.messages = [self.messages[0]]
         else:
             if 'nstruct' in self.model_name:
-                self.messages = [{"role":"system", "content":message}]
+                self.messages = [{"role": "system", "content": message}]
             else:
                 self.messages = [message]
-        return
-    
-    def llm_generate_response(self, prompt): # if the model is not instruct
-        # Prepare input
-        messages = self.create_system_prompt(prompt)
-        # Generate response
-        inputs = self.tokenizer(messages, return_tensors="pt").to(self.model.device)
-        generated_ids = self.model.generate(
-            #input_ids=inputs["input_ids"],
-            **inputs,
-            max_new_tokens=100, 
-            num_return_sequences=1,
-            no_repeat_ngram_size=2,
-            temperature=0.7,
-            top_p=0.9,
-            pad_token_id=self.model.config.eos_token_id
-        ).to(self.model.device)
-        
-        # Decode response
-        response = self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-        print('native response',response)
-        return response[len(messages):].strip()
-    
 
 
+# Usage example:
+if __name__ == "__main__":
+    # Example tool function
+    def get_weather(location: str) -> str:
+        """Get weather information for a location"""
+        return f"The weather in {location} is sunny with 25°C"
+    
+    def calculate(expression: str) -> str:
+        """Calculate a mathematical expression"""
+        try:
+            result = eval(expression)  # Note: eval is dangerous in production
+            return str(result)
+        except:
+            return "Invalid expression"
+    
+    # Create agent with tools
+    agent = Agent(
+        model_name='Qwen/Qwen2.5-Coder-7B-Instruct',
+        agent_name='modern_agent',
+        tools=[get_weather, calculate]
+    )
+    
+    # Test the agent
+    response = agent.generate_response("What's the weather like in Paris?", print_result='yes')
 
 # %%
 
@@ -578,6 +522,7 @@ def agentthis(prompt="",message="", modelsel=1, asis=1, tools = [],memory='no'):
     READER_MODEL_NAME[10] = "mistralai/Mixtral-8x22B-Instruct-v0.1"
     READER_MODEL_NAME[11] = "EleutherAI/gpt-neo-2.7B"
     READER_MODEL_NAME[12] = "meta-llama/Llama-3.2-3B"
+    READER_MODEL_NAME[13] = "openai/gpt-oss-20b"
     
     if prompt == 'help':
         print("Usage: prompt, system_message, modelsel,asis,tools, memory")
@@ -602,11 +547,14 @@ def agentthis(prompt="",message="", modelsel=1, asis=1, tools = [],memory='no'):
         print("modelsel = 10: mistralai/Mixtral-8x22B-Instruct-v0.1")
         print("modelsel = 11: EleutherAI/gpt-neo-2.7B")
         print("modelsel = 12: meta-llama/Llama-3.2-3B")
+        print("modelsel = 13: openai/gpt-oss-20b")
         return
     if memory != "no" :
         agent = AgentMemory(READER_MODEL_NAME[modelsel],'agent1', message, asis, tools)
     else:
+        print("start loading -----")
         agent = Agent(READER_MODEL_NAME[modelsel],'agent1', message, asis, tools)
+        print("finished loading -----")
     if not prompt:
         prompt = 'Are you ready ?'
     #agent1_response = agent.generate_response(prompt)
